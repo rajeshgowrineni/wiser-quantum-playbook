@@ -403,6 +403,37 @@ textarea.j-input::placeholder{color:var(--text3)}
   .reveal { opacity:1 !important; transform:none !important; }
 }
 .jcc{font-family:var(--mono);font-size:.65rem;color:var(--text3)}
+
+/* ── QUIZ ───────────────────────────────────────────────────── */
+.quiz-q{background:var(--panel);border:1px solid var(--border);border-radius:var(--r);padding:1.25rem 1.4rem;margin-bottom:1rem;transition:border-color .2s}
+.quiz-q.correct{border-color:rgba(16,185,129,.5)}
+.quiz-q.wrong{border-color:rgba(239,68,68,.4)}
+.quiz-q-num{font-family:var(--mono);font-size:.68rem;color:var(--cyan);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem}
+.quiz-q-text{font-size:.95rem;color:#fff;font-weight:500;margin-bottom:.9rem;line-height:1.5}
+.quiz-options{display:flex;flex-direction:column;gap:.45rem}
+.quiz-opt{
+  display:flex;align-items:flex-start;gap:.7rem;
+  padding:.6rem .85rem;border-radius:var(--r2);
+  border:1px solid var(--border);background:var(--bg3);
+  cursor:pointer;font-size:.86rem;color:var(--text2);
+  transition:all .18s;user-select:none;
+}
+.quiz-opt:hover:not(.disabled){border-color:var(--cyan);color:var(--text)}
+.quiz-opt.selected{border-color:var(--cyan);background:rgba(0,229,255,.07);color:#fff}
+.quiz-opt.correct-ans{border-color:var(--green)!important;background:rgba(16,185,129,.1)!important;color:#fff!important}
+.quiz-opt.wrong-ans{border-color:var(--red)!important;background:rgba(239,68,68,.08)!important;color:var(--text2)!important}
+.quiz-opt.disabled{cursor:default;pointer-events:none}
+.quiz-radio{width:16px;height:16px;border-radius:50%;border:2px solid var(--border);flex-shrink:0;margin-top:.15rem;transition:all .18s;display:flex;align-items:center;justify-content:center}
+.quiz-opt.selected .quiz-radio{border-color:var(--cyan);background:var(--cyan)}
+.quiz-opt.correct-ans .quiz-radio{border-color:var(--green);background:var(--green)}
+.quiz-opt.wrong-ans .quiz-radio{border-color:var(--red)}
+.quiz-explanation{display:none;margin-top:.85rem;padding:.75rem 1rem;border-radius:var(--r2);border-left:3px solid var(--green);background:rgba(16,185,129,.07);font-size:.84rem;color:var(--text2)}
+.quiz-explanation.show{display:block}
+.quiz-explanation strong{color:var(--green)}
+.quiz-explanation.wrong-exp{border-left-color:var(--red);background:rgba(239,68,68,.06)}
+.quiz-explanation.wrong-exp strong{color:var(--red)}
+.quiz-submit{margin-top:.85rem}
+
 </style>
 </head>
 <body>
@@ -440,6 +471,7 @@ textarea.j-input::placeholder{color:var(--text3)}
     <div class="nav-sec">Bonus Resources</div>
     <a href="#bonus1">📡 Quantum Landscape</a>
     <a href="#bonus2">📖 Week 1 · Malemath Lecture</a>
+    <a href="#quiz1">✅ Week 1 · Quiz</a>
     <div class="nav-sec">Study Tools</div>
     <a href="#tracker"><span class="mndot"></span>6-Week Tracker</a>
     <a href="#glossary"><span class="mndot"></span>Glossary</a>
@@ -480,6 +512,7 @@ textarea.j-input::placeholder{color:var(--text3)}
     <div class="nav-sec">Bonus Resources</div>
     <a href="#bonus1"><span class="ndot"></span>Quantum Landscape Talk</a>
     <a href="#bonus2"><span class="ndot"></span>Week 1 · Malemath Lecture</a>
+    <a href="#quiz1"><span class="ndot"></span>Week 1 · Quiz</a>
     <div class="nav-sec">Study Tools</div>
     <a href="#tracker"><span class="ndot"></span>6-Week Tracker</a>
     <a href="#glossary"><span class="ndot"></span>Glossary</a>
@@ -1347,6 +1380,25 @@ textarea.j-input::placeholder{color:var(--text3)}
         <tr><td><span class="badge cyan">5</span></td><td class="tk">IQM's star topology gives all-to-all connectivity. Dr. Seeper from IQM speaks in Week 2. Prepare one sharp question about how star topology affects transpilation overhead.</td><td class="tv">If all qubits are connected, what happens to SWAP gate overhead in transpilation?</td></tr>
       </tbody>
     </table>
+  </div>
+</section>
+
+
+<!-- QUIZ: Week 1 Assessment -->
+<section id="quiz1" class="reveal">
+  <div class="sec-tag">Week 1 · Assessment · 5 Questions</div>
+  <h2>Week 1 Knowledge Check</h2>
+  <p style="color:var(--text2);font-size:.88rem;margin-bottom:1.4rem">Five questions from the WISER Week 1 assessment. Select your answer — the correct answer and explanation reveal on submission.</p>
+
+  <div id="quiz-container"></div>
+
+  <div id="quiz-result" style="display:none;margin-top:1.5rem">
+    <div id="quiz-score-box" style="text-align:center;padding:1.5rem;border-radius:var(--r);border:1px solid var(--border)">
+      <div id="quiz-score-num" style="font-family:var(--mono);font-size:3rem;font-weight:700"></div>
+      <div style="font-family:var(--mono);font-size:.85rem;color:var(--text2);margin-top:.25rem">questions correct</div>
+      <div id="quiz-score-msg" style="margin-top:.75rem;font-size:.9rem"></div>
+    </div>
+    <button class="btn ghost" id="quiz-retry" style="margin-top:1rem;width:100%;justify-content:center">↺ Retry Quiz</button>
   </div>
 </section>
 
@@ -2221,6 +2273,230 @@ tlData.forEach(function(item){
     var dy=Math.abs(e.changedTouches[0].clientY-sy);
     if(sx<30&&dx>55&&dy<80) openMob();
   },{passive:true});
+})();
+
+
+// ═══════════════════════════════════════════════════════════════
+// WEEK 1 QUIZ
+// ═══════════════════════════════════════════════════════════════
+(function(){
+  var quizData = [
+    {
+      num: 'Q1',
+      q: 'Which of the following statements about qubits and classical bits is true?',
+      opts: [
+        'Quantum states remain the same after measurement like classical bits.',
+        '3 classical bits can represent 8 combinations while 3 qubits can only represent 3 combinations.',
+        'Classical bits can be entangled.',
+        'Qubits can exist in a superposition of states.'
+      ],
+      answer: 3,
+      explain: '<strong>Correct.</strong> Qubits can exist in superposition — a combination of |0\u27e9 and |1\u27e9 simultaneously before measurement. The other options are false: quantum states collapse (not stay same) on measurement; 3 qubits represent 2\u00b3 = 8 states (same as classical bits); classical bits cannot be entangled.'
+    },
+    {
+      num: 'Q2',
+      q: 'What happens to a quantum state in superposition when it is measured?',
+      opts: [
+        'The quantum state collapses into one of the basis states.',
+        'The quantum state remains the same.',
+        'The quantum state transforms into a different superposition of states.',
+        'The quantum state undergoes entanglement.'
+      ],
+      answer: 0,
+      explain: '<strong>Correct.</strong> Measurement causes wavefunction collapse — the superposition irreversibly collapses to a definite |0\u27e9 or |1\u27e9. It cannot stay in superposition, shift to another superposition, or become entangled upon measurement.'
+    },
+    {
+      num: 'Q3',
+      q: 'What is the probability of observing a specific basis state of a qubit?',
+      opts: [
+        'The absolute value of the amplitude of the basis state.',
+        'The probability distribution is given by a uniform distribution over all basis states.',
+        'The absolute square of the amplitude of the basis state.',
+        'The probability is unknown to us even with knowledge of the amplitudes.'
+      ],
+      answer: 2,
+      explain: '<strong>Correct — Born rule.</strong> P(|0\u27e9) = |\u03b1|\u00b2 and P(|1\u27e9) = |\u03b2|\u00b2. It is the <em>square</em> of the absolute value, not the absolute value itself. The distribution is not uniform — it is fully determined by the amplitudes. With knowledge of \u03b1 and \u03b2 the probability is completely known.'
+    },
+    {
+      num: 'Q4',
+      q: 'Which of the following sets of gates are used to create a Bell state?',
+      opts: [
+        'A Hadamard gate and a CNOT gate.',
+        'A Hadamard gate and an X gate.',
+        'A Z gate and a CNOT gate.',
+        'An X gate and a Z gate.'
+      ],
+      answer: 0,
+      explain: '<strong>Correct.</strong> Circuit: H on q\u2080 (creates superposition: |+\u27e9) \u2192 CNOT with q\u2080 as control and q\u2081 as target (creates entanglement). Result: (\u27580\u27580\u27e9 + |11\u27e9)/\u221a2 — the \u03a6\u207a Bell state. No other option produces a maximally entangled state.'
+    },
+    {
+      num: 'Q5',
+      q: 'What is true about quantum entanglement?',
+      opts: [
+        'The entangled qubits send information to each other.',
+        'Entanglement is a quantum phenomenon where multiple qubits can be linked such that measuring one instantly determines the state of the second qubit, regardless of physical distance.',
+        'The qubits need to be in close physical proximity for entanglement to work.',
+        'The state of the distant particle can be pre-determined when entanglement is created.'
+      ],
+      answer: 1,
+      explain: '<strong>Correct.</strong> Entangled qubits are correlated such that measuring one instantly determines the other — over any distance. They do NOT send information (no faster-than-light signalling). Physical proximity is not required. And crucially, the state is NOT pre-determined at creation — that would be the classical gloves-in-a-box correlation, not quantum entanglement.'
+    }
+  ];
+
+  var container = document.getElementById('quiz-container');
+  var resultDiv = document.getElementById('quiz-result');
+  var retryBtn  = document.getElementById('quiz-retry');
+  if (!container) return;
+
+  var userAnswers = new Array(quizData.length).fill(-1);
+  var submitted   = new Array(quizData.length).fill(false);
+  var score = 0;
+
+  // Load saved state
+  var saved = {};
+  try { saved = JSON.parse(localStorage.getItem('wiser-quiz1') || '{}'); } catch(e) {}
+
+  function buildQuiz() {
+    container.innerHTML = '';
+    score = 0;
+    userAnswers = new Array(quizData.length).fill(-1);
+    submitted   = new Array(quizData.length).fill(false);
+
+    quizData.forEach(function(q, qi) {
+      var card = document.createElement('div');
+      card.className = 'quiz-q';
+      card.id = 'qq-' + qi;
+
+      var optsHTML = q.opts.map(function(opt, oi) {
+        return '<div class="quiz-opt" id="qo-'+qi+'-'+oi+'" data-qi="'+qi+'" data-oi="'+oi+'">'
+          + '<span class="quiz-radio"></span>'
+          + '<span>' + opt + '</span>'
+          + '</div>';
+      }).join('');
+
+      var expClass = '';
+      card.innerHTML =
+        '<div class="quiz-q-num">' + q.num + ' of ' + quizData.length + '</div>'
+        + '<div class="quiz-q-text">' + q.q + '</div>'
+        + '<div class="quiz-options">' + optsHTML + '</div>'
+        + '<div class="quiz-explanation" id="qe-'+qi+'"></div>'
+        + '<div class="quiz-submit"><button class="btn cyan" id="qs-'+qi+'" style="font-size:.8rem;padding:.5rem 1.2rem">Submit Answer</button></div>';
+
+      container.appendChild(card);
+
+      // Restore saved answer if present
+      if (saved[qi] !== undefined) {
+        userAnswers[qi] = saved[qi].ans;
+        submitted[qi]   = true;
+        applyResult(qi, saved[qi].ans, q.answer, q.explain);
+      }
+    });
+
+    // Event delegation for option clicks
+    container.addEventListener('click', function(e) {
+      var opt = e.target.closest('.quiz-opt');
+      var btn = e.target.closest('button[id^="qs-"]');
+
+      if (opt) {
+        var qi = parseInt(opt.getAttribute('data-qi'));
+        var oi = parseInt(opt.getAttribute('data-oi'));
+        if (submitted[qi]) return;
+        userAnswers[qi] = oi;
+        // Clear selection in this question
+        var allOpts = container.querySelectorAll('[data-qi="'+qi+'"]');
+        allOpts.forEach(function(o) { o.classList.remove('selected'); });
+        opt.classList.add('selected');
+      }
+
+      if (btn) {
+        var qi = parseInt(btn.id.replace('qs-',''));
+        if (submitted[qi]) return;
+        if (userAnswers[qi] === -1) {
+          btn.textContent = 'Please select an answer first';
+          setTimeout(function(){ btn.textContent = 'Submit Answer'; }, 1800);
+          return;
+        }
+        submitted[qi] = true;
+        var q = quizData[qi];
+        applyResult(qi, userAnswers[qi], q.answer, q.explain);
+        // Save
+        saved[qi] = { ans: userAnswers[qi] };
+        try { localStorage.setItem('wiser-quiz1', JSON.stringify(saved)); } catch(e) {}
+        // Check if all done
+        if (submitted.every(Boolean)) showResult();
+      }
+    });
+
+    resultDiv.style.display = 'none';
+    retryBtn && (retryBtn.style.display = '');
+  }
+
+  function applyResult(qi, chosen, correct, explain) {
+    var card = document.getElementById('qq-' + qi);
+    var expEl = document.getElementById('qe-' + qi);
+    var sbEl  = document.getElementById('qs-' + qi);
+    var isCorrect = chosen === correct;
+
+    if (isCorrect) score++;
+    card.classList.add(isCorrect ? 'correct' : 'wrong');
+
+    var allOpts = container.querySelectorAll('[data-qi="'+qi+'"]');
+    allOpts.forEach(function(o) {
+      var oi = parseInt(o.getAttribute('data-oi'));
+      o.classList.add('disabled');
+      if (oi === correct)        o.classList.add('correct-ans');
+      else if (oi === chosen)    o.classList.add('wrong-ans');
+    });
+
+    expEl.innerHTML = (isCorrect ? '' : '<strong style="color:var(--red)">Incorrect.</strong> The correct answer is option ' + (correct+1) + '.<br><br>') + explain;
+    expEl.className = 'quiz-explanation show' + (isCorrect ? '' : ' wrong-exp');
+
+    if (sbEl) {
+      sbEl.textContent = isCorrect ? '✓ Correct!' : '✗ Incorrect';
+      sbEl.style.background = isCorrect ? 'var(--green)' : 'var(--red)';
+      sbEl.style.cursor = 'default';
+    }
+  }
+
+  function showResult() {
+    resultDiv.style.display = 'block';
+    var scoreEl = document.getElementById('quiz-score-num');
+    var msgEl   = document.getElementById('quiz-score-msg');
+    var box     = document.getElementById('quiz-score-box');
+    var pct = score / quizData.length;
+    scoreEl.textContent = score + ' / ' + quizData.length;
+    scoreEl.style.color = pct >= 0.8 ? 'var(--green)' : pct >= 0.6 ? 'var(--gold)' : 'var(--red)';
+    box.style.borderColor = pct >= 0.8 ? 'rgba(16,185,129,.4)' : pct >= 0.6 ? 'rgba(245,158,11,.4)' : 'rgba(239,68,68,.4)';
+    var msgs = {
+      5: '🏆 Perfect score! You\'ve fully mastered Week 1 fundamentals.',
+      4: '✅ Strong result. Review the one you missed and move on.',
+      3: '⚠️ Good foundation — revisit the explanations above before Week 2.',
+      2: '📖 Re-read the Malemath lecture notes above and retry.',
+      1: '🔄 Go back to Section 2 of this playbook and retry.',
+      0: '🔄 Start from the Malemath lecture notes and retry.'
+    };
+    msgEl.textContent = msgs[score] || '';
+    // Save score
+    try { localStorage.setItem('wiser-quiz1-score', score); } catch(e) {}
+    resultDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  if (retryBtn) {
+    retryBtn.addEventListener('click', function() {
+      saved = {};
+      try { localStorage.removeItem('wiser-quiz1'); localStorage.removeItem('wiser-quiz1-score'); } catch(e) {}
+      buildQuiz();
+      container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }
+
+  // Restore score display if all answered
+  if (Object.keys(saved).length === quizData.length) {
+    score = Object.values(saved).filter(function(s,i){ return s.ans === quizData[i].answer; }).length;
+    setTimeout(showResult, 100);
+  }
+
+  buildQuiz();
 })();
 
 })(); // end IIFE
