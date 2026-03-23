@@ -20,12 +20,12 @@
   --r:12px;--r2:6px;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth}
+html{scroll-behavior:smooth;overflow-x:hidden}
 body{
   background:var(--bg);color:var(--text);
   font-family:var(--sans);font-size:16px;line-height:1.7;
-  overflow-x:hidden;
 }
+
 body::before{
   content:'';position:fixed;inset:0;
   background-image:
@@ -54,9 +54,17 @@ a{color:var(--cyan);text-decoration:none}
   width:256px;flex-shrink:0;
   background:var(--panel);border-right:1px solid var(--border);
   position:fixed;top:0;left:0;bottom:0;
-  overflow-y:auto;z-index:100;
+  overflow-y:scroll;
+  -webkit-overflow-scrolling:touch;
+  z-index:102;
   display:flex;flex-direction:column;
-  transition:transform .28s ease;
+  transition:transform .3s cubic-bezier(.4,0,.2,1);
+  overscroll-behavior:contain;
+  will-change:transform;
+}
+/* iOS: prevent sidebar content from being taller than viewport */
+#sidebar nav{
+  flex-shrink:0;
 }
 .sb-logo{padding:1.4rem 1.2rem 1rem;border-bottom:1px solid var(--border)}
 .sb-logo .tag{font-family:var(--mono);font-size:.68rem;color:var(--cyan);letter-spacing:.12em;text-transform:uppercase;margin-bottom:.45rem}
@@ -80,14 +88,14 @@ nav a:hover .ndot,nav a.active .ndot{background:var(--cyan);box-shadow:0 0 6px v
 
 /* TOPBAR */
 #topbar{
-  display:none;position:sticky;top:0;z-index:90;
-  background:rgba(4,8,26,.95);backdrop-filter:blur(10px);
+  display:none;position:sticky;top:0;z-index:103;
+  background:rgba(4,8,26,.98);backdrop-filter:blur(12px);
   border-bottom:1px solid var(--border);
   padding:.7rem 1rem;align-items:center;justify-content:space-between;
 }
 #menu-btn{background:none;border:1px solid var(--border);color:var(--text2);cursor:pointer;border-radius:6px;padding:.35rem .6rem;font-size:1.1rem}
 #tb-title{font-family:var(--mono);font-size:.78rem;color:var(--cyan)}
-#overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:99}
+#overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:101;-webkit-tap-highlight-color:transparent;cursor:pointer}
 #overlay.show{display:block}
 
 /* MAIN */
@@ -382,8 +390,8 @@ textarea.j-input::placeholder{color:var(--text3)}
     <div class="ic">📄</div>
     <div>
       <h4>Source Paper</h4>
-      <p><strong>An Elementary Review on Basic Principles and Developments of Qubits for Quantum Computing</strong><br>
-      Chae, Choi &amp; Kim · <em>Nano Convergence</em> (2024) 11:11 · Open Access · DOI: 10.1186/s40580-024-00418-5</p>
+      <p><a href="https://link.springer.com/article/10.1186/s40580-024-00418-5" target="_blank" rel="noopener" style="color:#fff;text-decoration:underline;text-underline-offset:3px;text-decoration-color:rgba(0,229,255,.5)"><strong>An Elementary Review on Basic Principles and Developments of Qubits for Quantum Computing ↗</strong></a><br>
+      Chae, Choi &amp; Kim · <em>Nano Convergence</em> (2024) 11:11 · Open Access · <a href="https://doi.org/10.1186/s40580-024-00418-5" target="_blank" rel="noopener" style="color:var(--cyan)">DOI: 10.1186/s40580-024-00418-5</a></p>
     </div>
   </div>
 </section>
@@ -766,15 +774,40 @@ function updateNav(){
 window.addEventListener('scroll',updateNav,{passive:true});
 updateNav();
 
-function toggleSidebar(){
-  $('sidebar').classList.toggle('open');
-  $('overlay').classList.toggle('show');
+function openSidebar(){
+  $('sidebar').classList.add('open');
+  $('overlay').classList.add('show');
 }
-$('menu-btn').addEventListener('click', toggleSidebar);
-$('overlay').addEventListener('click', toggleSidebar);
+function closeSidebar(){
+  $('sidebar').classList.remove('open');
+  $('overlay').classList.remove('show');
+}
+function toggleSidebar(){
+  $('sidebar').classList.contains('open') ? closeSidebar() : openSidebar();
+}
+$('menu-btn').addEventListener('click',toggleSidebar);
+$('overlay').addEventListener('click',closeSidebar);
+
+// Nav link clicks — close sidebar, then scroll to section
 navLinks.forEach(function(a){
-  a.addEventListener('click', function(){
-    if(window.innerWidth<=768) toggleSidebar();
+  a.addEventListener('click',function(e){
+    var href=a.getAttribute('href');
+    if(!href||!href.startsWith('#')) return;
+    var target=document.querySelector(href);
+    if(!target) return;
+    e.preventDefault();
+    var isMobile=window.innerWidth<=768;
+    if(isMobile&&$('sidebar').classList.contains('open')){
+      closeSidebar();
+      // Wait for sidebar slide-out animation (280ms) then scroll
+      setTimeout(function(){
+        var top=target.getBoundingClientRect().top+window.scrollY-60;
+        window.scrollTo({top:top,behavior:'smooth'});
+      },320);
+    } else {
+      var top=target.getBoundingClientRect().top+window.scrollY-60;
+      window.scrollTo({top:top,behavior:'smooth'});
+    }
   });
 });
 
@@ -1510,6 +1543,58 @@ tlData.forEach(function(item){
     +'<div class="tl-desc">'+item.desc+'</div>';
   tlEl.appendChild(div);
 });
+
+// ── TOUCH HANDLING: block page scroll when sidebar open ─────
+// This is the ONLY reliable fix for iOS Safari pass-through bug
+var txStart=0,tyStart=0;
+var sidebarEl=$('sidebar');
+
+sidebarEl.addEventListener('touchstart',function(e){
+  txStart=e.touches[0].clientX;
+  tyStart=e.touches[0].clientY;
+  // If sidebar is scrolled to top and user drags down — prevent bounce
+  if(sidebarEl.scrollTop===0) e.preventDefault();
+},{passive:false});
+
+// Block ALL document touchmove when sidebar is open
+// except when the touch originated inside the sidebar
+document.addEventListener('touchmove',function(e){
+  if(!sidebarEl.classList.contains('open')) return;
+  // Check if touch target is inside sidebar
+  var node=e.target;
+  var insideSidebar=false;
+  while(node){
+    if(node===sidebarEl){insideSidebar=true;break;}
+    node=node.parentElement;
+  }
+  if(!insideSidebar){
+    e.preventDefault(); // block page scroll behind sidebar
+  }
+},{passive:false});
+
+// Swipe left on sidebar to close
+sidebarEl.addEventListener('touchstart',function(e){
+  txStart=e.touches[0].clientX;
+  tyStart=e.touches[0].clientY;
+},{passive:true});
+sidebarEl.addEventListener('touchend',function(e){
+  var dx=e.changedTouches[0].clientX-txStart;
+  var dy=Math.abs(e.changedTouches[0].clientY-tyStart);
+  if(dx<-55&&dy<60) closeSidebar();
+},{passive:true});
+
+// Also allow swipe-right-from-left-edge to open
+document.addEventListener('touchstart',function(e){
+  txStart=e.touches[0].clientX;
+  tyStart=e.touches[0].clientY;
+},{passive:true});
+document.addEventListener('touchend',function(e){
+  if(sidebarEl.classList.contains('open')) return;
+  var dx=e.changedTouches[0].clientX-txStart;
+  var dy=Math.abs(e.changedTouches[0].clientY-tyStart);
+  // Swipe right from left edge (within 30px) to open
+  if(txStart<30&&dx>55&&dy<80) openSidebar();
+},{passive:true});
 
 })(); // end IIFE
 </script>
