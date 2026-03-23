@@ -439,6 +439,7 @@ textarea.j-input::placeholder{color:var(--text3)}
     <a href="#s4">🔢 NISQ Fidelity Gauge</a>
     <div class="nav-sec">Bonus Resources</div>
     <a href="#bonus1">📡 Quantum Landscape</a>
+    <a href="#bonus2">📖 Week 1 · Malemath Lecture</a>
     <div class="nav-sec">Study Tools</div>
     <a href="#tracker"><span class="mndot"></span>6-Week Tracker</a>
     <a href="#glossary"><span class="mndot"></span>Glossary</a>
@@ -478,6 +479,7 @@ textarea.j-input::placeholder{color:var(--text3)}
     <a href="#s4">🔢 NISQ Fidelity Gauge</a>
     <div class="nav-sec">Bonus Resources</div>
     <a href="#bonus1"><span class="ndot"></span>Quantum Landscape Talk</a>
+    <a href="#bonus2"><span class="ndot"></span>Week 1 · Malemath Lecture</a>
     <div class="nav-sec">Study Tools</div>
     <a href="#tracker"><span class="ndot"></span>6-Week Tracker</a>
     <a href="#glossary"><span class="ndot"></span>Glossary</a>
@@ -1044,6 +1046,305 @@ textarea.j-input::placeholder{color:var(--text3)}
           <td class="tk">The measurement probability challenge drives algorithm design</td>
           <td class="tv">Every algorithm in Weeks 4–6 is a direct engineering response to this challenge — understanding this gives you insight others miss</td>
         </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+
+<!-- BONUS RESOURCE 2: Week 1 Session 1 — Dr. Akash Malemath -->
+<section id="bonus2" class="reveal">
+  <div class="sec-tag">Week 1 · Session 1 · Dr. Akash Malemath (WISER / DFKI)</div>
+  <h2>Basics of Quantum Computing — Lecture Notes</h2>
+  <p style="font-size:.85rem;color:var(--text2);margin-bottom:1.2rem">
+    Source: WISER Phase 2 Week 1 Session 1 live lecture · Speaker: Dr. Akash Malemath,
+    Technical Project Manager at WISER &amp; Research Assistant at DFKI Germany ·
+    <a href="https://www.youtube.com/watch?v=tJawdDmUFmg" target="_blank" rel="noopener" style="color:var(--cyan)">▶ Watch on YouTube ↗</a>
+  </p>
+
+  <!-- PART 1: Why Classical Hits a Wall -->
+  <h3>1 · Classical Computers Are Extraordinary — But Hitting a Wall</h3>
+  <p>Before understanding quantum, appreciate how far classical has come. Then understand why it is not enough.</p>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Hardware</th><th>Capability</th><th>The Limit</th></tr></thead>
+      <tbody>
+        <tr><td class="tk">Nvidia B200 GPU</td><td class="tv">9 quadrillion floating-point ops/sec (9 PFLOPS). Trains ChatGPT, simulates weather.</td><td class="tv">Sold out through mid-2026 — demand vastly outpaces supply</td></tr>
+        <tr><td class="tk">Apple M5 Max</td><td class="tk">18 CPU + 40 GPU cores on fingernail-sized 3nm chip (10 atoms wide)</td><td class="tv">Physically running out of room — &lt;10 atoms and quantum effects become uncontrollable</td></tr>
+        <tr><td class="tk">AMD Venice (upcoming)</td><td class="tv">256 cores on 2nm chip</td><td class="tv">Moore's Law now doubles every 4–5 years, down from 2. Thermal dissipation becoming fundamental limit.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout red" style="background:rgba(239,68,68,.07);border-left:3px solid var(--red)">
+    <div class="ci">⚠️</div>
+    <div>
+      <h4 style="color:var(--red)">The Hard Wall</h4>
+      <p>Data centres are burning 1,000W per GPU card and straining power grids. At 10 atoms wide we are at the physical transistor limit. And an entirely different class of problems — drug discovery, cryptography, optimisation — <strong>no amount of classical compute can solve efficiently</strong>. That is exactly why quantum computing matters.</p>
+    </div>
+  </div>
+
+  <!-- PART 2: Quantum Milestones 2023–2025 -->
+  <h3 class="mt2">2 · Recent Quantum Milestones (2023–2025)</h3>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Year</th><th>Milestone</th><th>Significance</th></tr></thead>
+      <tbody>
+        <tr><td class="tk">Dec 2023</td><td class="tv">IBM Condor — first 1,000-qubit chip</td><td class="tv">Started the "utility era" — algorithms being designed at 1,000-qubit scale</td></tr>
+        <tr><td class="tk">2029 (target)</td><td class="tv">IBM Sterling — 200 logical qubits, 100M gate ops</td><td class="tv">IBM's public roadmap target for fault-tolerant utility</td></tr>
+        <tr><td class="tk">2025</td><td class="tv">Microsoft Majorana 1 — first topological qubit processor</td><td class="tv">Entirely new qubit type; topological protection may dramatically reduce error overhead</td></tr>
+        <tr><td class="tk">2024</td><td class="tv">Quantum Computers (EU) — fault-tolerant QC challenge by 2030</td><td class="tv">European push for full fault tolerance within this decade</td></tr>
+        <tr><td class="tk">2025</td><td class="tv">IonQ acquires Skywater ($1.88B) — in-house chip fab</td><td class="tv">Vertical integration: trapped-ion company now builds its own hardware</td></tr>
+        <tr><td class="tk">2025</td><td class="tv">IQM star topology — all-to-all qubit connectivity</td><td class="tv">Central resonator connects any qubit to any qubit, eliminating SWAP gate overhead</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- PART 3: Quantum Advantage — The Honest Answer -->
+  <h3 class="mt2">3 · Quantum Advantage — The Honest Answer</h3>
+  <p>"Quantum computers provide exponential speedup" — is this true? <strong>Yes and no, like superposition.</strong></p>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Algorithm</th><th>Problem</th><th>Speedup vs Classical</th><th>Catch</th></tr></thead>
+      <tbody>
+        <tr><td class="tk">Shor's</td><td class="tv">Integer factorisation (RSA)</td><td><span class="badge green">Exponential</span></td><td class="tv">Requires millions of logical qubits — not yet built</td></tr>
+        <tr><td class="tk">HHL</td><td class="tv">Solving linear systems of equations</td><td><span class="badge green">Exponential</span></td><td class="tv">Only under very specific conditions (extremely sparse matrices etc.)</td></tr>
+        <tr><td class="tk">Grover's</td><td class="tv">Unstructured search</td><td><span class="badge cyan">Quadratic (√N)</span></td><td class="tv">Mathematically proven: quantum cannot do better than quadratic for unstructured search</td></tr>
+        <tr><td class="tk">Quantum walk</td><td class="tv">Structured search</td><td><span class="badge cyan">Polynomial</span></td><td class="tv">Sometimes better than Grover's for structured problems</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout gold">
+    <div class="ci">💡</div>
+    <div>
+      <h4>IBM's Three Near-Term Advantage Domains</h4>
+      <p>IBM's recent paper proposes three problem types where quantum advantage is achievable near-term: <strong>(1) Sampling problems</strong> (quantum chemistry, boson sampling) · <strong>(2) Variational problems</strong> (VQE, QAOA — your Weeks 5 &amp; 6) · <strong>(3) Expectation value problems</strong> (observables in material science). Key insight: <em>quantum advantage = quantum + classical outperforming classical alone</em>. Hybrid is the model.</p>
+    </div>
+  </div>
+
+  <!-- PART 4: Qubit Representation -->
+  <h3 class="mt2">4 · Qubit Representation — State Vectors &amp; Hilbert Space</h3>
+  <p>A qubit state is a <strong>state vector</strong> in a 3D sphere (Bloch sphere). North and south poles are |0⟩ and |1⟩. Any point on the surface is a valid pure qubit state.</p>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Concept</th><th>Definition</th><th>Key Formula</th></tr></thead>
+      <tbody>
+        <tr><td class="tk">State vector</td><td class="tv">Column vector (α, β) representing qubit amplitudes</td><td><code>|ψ⟩ = α|0⟩ + β|1⟩</code></td></tr>
+        <tr><td class="tk">Normalisation</td><td class="tv">Total probability must equal 1</td><td><code>|α|² + |β|² = 1</code></td></tr>
+        <tr><td class="tk">Measurement probability</td><td class="tv">Square of the amplitude (Born rule)</td><td><code>P(0) = |α|², P(1) = |β|²</code></td></tr>
+        <tr><td class="tk">Relative phase</td><td class="tv">Complex component of amplitudes — affects interference only, not probability distribution</td><td><code>α, β ∈ ℂ</code></td></tr>
+        <tr><td class="tk">Hilbert space</td><td class="tv">Abstract mathematical space where state vectors and operators live</td><td><code>dim = 2ⁿ for n qubits</code></td></tr>
+        <tr><td class="tk">n-qubit states</td><td class="tv">State vector size grows exponentially with qubit count</td><td><code>300 qubits → 2³⁰⁰ states &gt; atoms in universe</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- PART 5: Three Quantum Effects -->
+  <h3 class="mt2">5 · The Three Quantum Effects That Power Computing</h3>
+
+  <div class="g2" style="grid-template-columns:repeat(auto-fit,minmax(250px,1fr))">
+    <div class="panel cyan">
+      <div style="font-family:var(--mono);font-size:.68rem;color:var(--cyan);margin-bottom:.4rem">EFFECT 1 · SUPERPOSITION</div>
+      <h4 style="color:#fff;margin-bottom:.4rem;font-size:1rem">The Spinning Coin</h4>
+      <p style="font-size:.83rem;color:var(--text2)">Before measurement: coin spinning in air = both 0 and 1 simultaneously.<br>After measurement: coin lands = definite 0 or 1.<br><strong>Power:</strong> n qubits represent 2ⁿ states simultaneously. 300 qubits = more states than atoms in the universe.</p>
+    </div>
+    <div class="panel violet">
+      <div style="font-family:var(--mono);font-size:.68rem;color:var(--violet2);margin-bottom:.4rem">EFFECT 2 · INTERFERENCE</div>
+      <h4 style="color:#fff;margin-bottom:.4rem;font-size:1rem">Amplitudes Add or Cancel</h4>
+      <p style="font-size:.83rem;color:var(--text2)">Constructive: same-sign amplitudes add → higher probability for correct answers.<br>Destructive: opposite-sign amplitudes cancel → lower probability for wrong answers.<br><strong>Power:</strong> Quantum algorithms are carefully designed interference patterns that amplify right answers and kill wrong ones.</p>
+    </div>
+    <div class="panel green">
+      <div style="font-family:var(--mono);font-size:.68rem;color:var(--green);margin-bottom:.4rem">EFFECT 3 · ENTANGLEMENT</div>
+      <h4 style="color:#fff;margin-bottom:.4rem;font-size:1rem">The Correlated Dice</h4>
+      <p style="font-size:.83rem;color:var(--text2)">Classical correlation (gloves in a box): value was always definite, you just didn't know it.<br>Quantum correlation (correlated dice): <strong>no definite value until measured</strong>. Correlation is created at measurement — not before.<br>Does NOT enable faster-than-light communication.</p>
+    </div>
+  </div>
+
+  <div class="callout cyan">
+    <div class="ci">🔬</div>
+    <div>
+      <h4>Hadamard Interference — Worked Example</h4>
+      <p>Apply H to |0⟩ → (|0⟩+|1⟩)/√2. Apply H again: the |1⟩ components cancel (destructive interference) and |0⟩ components add (constructive interference) → you get back |0⟩ exactly. This is interference in action. <strong>Your circuit: <code>qc.h(0); qc.h(0); qc.measure_all()</code> — always returns 0.</strong></p>
+    </div>
+  </div>
+
+  <!-- PART 6: Gate Operations -->
+  <h3 class="mt2">6 · Quantum Gate Operations</h3>
+  <p>Gates are <strong>unitary operations</strong> (U†U = I) — they conserve probability and are reversible. Systems using only unitary gates are <em>closed quantum systems</em>.</p>
+
+  <h4 style="color:var(--text);font-family:var(--sans);font-size:.95rem;margin:.8rem 0 .4rem">Single-Qubit Gates — Pauli Gates</h4>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Gate</th><th>Matrix</th><th>Action</th><th>Qiskit</th></tr></thead>
+      <tbody>
+        <tr><td><span class="badge gold">X</span></td><td><code>[[0,1],[1,0]]</code></td><td class="tv">Bit flip: |0⟩→|1⟩, |1⟩→|0⟩. Quantum NOT gate.</td><td><code>qc.x(0)</code></td></tr>
+        <tr><td><span class="badge violet">Y</span></td><td><code>[[0,−i],[i,0]]</code></td><td class="tv">Bit flip + phase flip (phase = −i)</td><td><code>qc.y(0)</code></td></tr>
+        <tr><td><span class="badge cyan">Z</span></td><td><code>[[1,0],[0,−1]]</code></td><td class="tv">Phase flip only: |0⟩→|0⟩, |1⟩→−|1⟩</td><td><code>qc.z(0)</code></td></tr>
+        <tr><td><span class="badge green">H</span></td><td><code>[[1,1],[1,−1]]/√2</code></td><td class="tv">Creates equal superposition: |0⟩→(|0⟩+|1⟩)/√2</td><td><code>qc.h(0)</code></td></tr>
+        <tr><td><span class="badge orange">P(φ)</span></td><td><code>[[1,0],[0,e^iφ]]</code></td><td class="tv">Adds phase φ to |1⟩ state only</td><td><code>qc.p(phi,0)</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h4 style="color:var(--text);font-family:var(--sans);font-size:.95rem;margin:.8rem 0 .4rem">Two-Qubit Gate — CNOT (CX)</h4>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Control</th><th>Target (in)</th><th>Target (out)</th><th>Explanation</th></tr></thead>
+      <tbody>
+        <tr><td class="tk">|0⟩</td><td class="tv">|0⟩</td><td class="tv">|0⟩</td><td class="tv">Control = 0 → do nothing</td></tr>
+        <tr><td class="tk">|0⟩</td><td class="tv">|1⟩</td><td class="tv">|1⟩</td><td class="tv">Control = 0 → do nothing</td></tr>
+        <tr><td class="tk" style="color:var(--cyan)">|1⟩</td><td class="tv">|0⟩</td><td class="tv" style="color:var(--cyan)">|1⟩</td><td class="tv">Control = 1 → <strong>flip target</strong></td></tr>
+        <tr><td class="tk" style="color:var(--cyan)">|1⟩</td><td class="tv">|1⟩</td><td class="tv" style="color:var(--cyan)">|0⟩</td><td class="tv">Control = 1 → <strong>flip target</strong></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- PART 7: Measurement & Shots -->
+  <h3 class="mt2">7 · Measurement, Born Rule &amp; Shots</h3>
+  <p>Measurement collapses superposition to a classical outcome. The probability of each outcome is given by the <strong>Born rule</strong>: P(outcome) = |amplitude|².</p>
+
+  <div class="callout violet">
+    <div class="ci">🎯</div>
+    <div>
+      <h4>Bell Circuit — Concrete Example</h4>
+      <p>Circuit: H on q₀ → CNOT(q₀→q₁) → measure. Expected state: (|00⟩+|11⟩)/√2. Each shot gives either "00" or "11" with 50% each. <strong>A single shot means nothing.</strong> Run 1024 shots → histogram approaches 512 counts each. Any deviation = noise. This is exactly what you will do in Week 2 on IBM Quantum.</p>
+    </div>
+  </div>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Term</th><th>Definition</th></tr></thead>
+      <tbody>
+        <tr><td class="tk">Shots</td><td class="tv">Total number of times you execute your quantum circuit. Each shot = one independent run.</td></tr>
+        <tr><td class="tk">Counts</td><td class="tv">How many times each bitstring result (00, 01, 10, 11) was observed across all shots.</td></tr>
+        <tr><td class="tk">Projective measurement</td><td class="tv">Measurement onto computational basis states (|0⟩, |1⟩). Uses Pauli-Z as the observable.</td></tr>
+        <tr><td class="tk">Born rule</td><td class="tv">P(eigenvalue i) = |⟨λᵢ|ψ⟩|². The squared inner product gives you the measurement probability.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- PART 8: Non-Unitary & Parameterized Circuits -->
+  <h3 class="mt2">8 · Non-Unitary Operations &amp; Parameterised Circuits</h3>
+  <p>Beyond unitary gates, real quantum systems include <strong>non-unitary operations</strong> — they improve circuit expressivity but require ancilla qubits and make the system an <em>open quantum system</em>.</p>
+
+  <div class="g2">
+    <div class="panel" style="border-color:rgba(148,163,184,.3)">
+      <div style="font-family:var(--mono);font-size:.68rem;color:var(--text3);margin-bottom:.4rem">NON-UNITARY OPERATIONS</div>
+      <ul style="font-size:.83rem;color:var(--text2);padding-left:1.2rem">
+        <li><strong>Measurements</strong> — probabilistic, irreversible</li>
+        <li><strong>Noise &amp; decoherence</strong> — studied as controlled resource</li>
+        <li><strong>Dissipation</strong> — controlled dissipation enables new algorithms</li>
+        <li><strong>Reset</strong> — reinitialise qubit mid-circuit</li>
+        <li><strong>Classical feedback</strong> — measure mid-circuit → conditionally apply gate</li>
+      </ul>
+    </div>
+    <div class="panel violet">
+      <div style="font-family:var(--mono);font-size:.68rem;color:var(--violet2);margin-bottom:.4rem">PARAMETERISED QUANTUM CIRCUITS (PQC)</div>
+      <p style="font-size:.83rem;color:var(--text2);margin-bottom:.5rem">Trainable circuits with angle parameters θ. Classical optimizer updates θ via gradient descent to minimise a loss function (e.g. ⟨Z⟩).</p>
+      <ul style="font-size:.83rem;color:var(--text2);padding-left:1.2rem">
+        <li><strong>VQE</strong> — ground state energy of Hamiltonian (Week 5)</li>
+        <li><strong>QAOA</strong> — optimisation (Week 6)</li>
+        <li><strong>QML classifiers</strong> — binary classification</li>
+        <li><strong>QCBM</strong> — generative model for probability distributions</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="callout gold">
+    <div class="ci">💡</div>
+    <div>
+      <h4>IBM 2024 — Dynamical Circuits Breakthrough</h4>
+      <p>IBM showed that a ladder of CNOT gates — which normally requires O(n) depth — can be implemented at <strong>constant depth</strong> using dynamical circuits (mid-circuit measurement + classical feedforward). Cost: n extra ancilla qubits + 1 feedforward round. This is a significant result for NISQ circuits.</p>
+    </div>
+  </div>
+
+  <!-- PART 9: Backends Workflow -->
+  <h3 class="mt2">9 · The Three Backends — Your Execution Workflow</h3>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Backend</th><th>Runs On</th><th>Access To</th><th>Use When</th></tr></thead>
+      <tbody>
+        <tr>
+          <td class="tk" style="color:var(--green)">Ideal simulator<br><span style="font-size:.75rem;font-family:var(--mono)">Aer statevector</span></td>
+          <td class="tv">Classical hardware</td>
+          <td class="tv">Full state vector (amplitudes)</td>
+          <td class="tv">Debugging — verify your algorithm works as intended <strong>before</strong> adding noise</td>
+        </tr>
+        <tr>
+          <td class="tk" style="color:var(--gold)">Noisy simulator<br><span style="font-size:.75rem;font-family:var(--mono)">Aer + noise model</span></td>
+          <td class="tv">Classical hardware</td>
+          <td class="tv">Sampled bitstrings + injected noise</td>
+          <td class="tv">Validating against real hardware behaviour; studying noise model effects on your circuit</td>
+        </tr>
+        <tr>
+          <td class="tk" style="color:var(--cyan)">Real hardware<br><span style="font-size:.75rem;font-family:var(--mono)">IBM / qBraid</span></td>
+          <td class="tv">Actual QPU</td>
+          <td class="tv">Sampled bitstrings only (no state vector)</td>
+          <td class="tv">Final validation; benchmarking against noise; Week 3 of your program</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout cyan">
+    <div class="ci">⚙️</div>
+    <div>
+      <h4>Transpilation — What Happens When You Submit a Job</h4>
+      <p>Real QPUs only support a <strong>native gate set</strong> (a small subset of all gates). When you submit a circuit, the transpiler breaks every gate into a combination of native gates. Example: IBM Q Manila has no native H gate — it decomposes H into <code>RZ → √X → RZ</code>. Transpilation depends on: (1) qubit architecture &amp; connectivity, (2) native basis gate set. <strong>Always inspect your transpiled circuit</strong> — it will be deeper than what you wrote.</p>
+    </div>
+  </div>
+
+  <!-- PART 10: Noise Sources -->
+  <h3 class="mt2">10 · Three Hardware Bottlenecks — Current State of Play</h3>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Bottleneck</th><th>What It Is</th><th>Current Best</th><th>Solution Direction</th></tr></thead>
+      <tbody>
+        <tr>
+          <td class="tk">T₁ / T₂ times</td>
+          <td class="tv">T₁ = energy relaxation (|1⟩→|0⟩). T₂ = phase coherence loss. Limits how long your circuit can run.</td>
+          <td class="tv">Trapped ions &amp; neutral atoms: millisecond range. Superconducting: ~100–300 μs.</td>
+          <td class="tv">Trap ions/neutral atoms for longer coherence; better isolation; error correction</td>
+        </tr>
+        <tr>
+          <td class="tk">2-qubit gate fidelity</td>
+          <td class="tv">CNOT/CZ gate accuracy. Main source of algorithmic error.</td>
+          <td class="tv">Quantinuum: 99.9% (2024) · IonQ: 99.8% (2025) · IQM: four 9s world record (2025)</td>
+          <td class="tv">Better pulse calibration; dynamical decoupling; error mitigation</td>
+        </tr>
+        <tr>
+          <td class="tk">Limited connectivity</td>
+          <td class="tv">Not all qubits can directly interact. Requires SWAP gates or physical routing.</td>
+          <td class="tv">SWAP gates = 3 CNOTs = massive overhead. Ion traps shuffle ions physically.</td>
+          <td class="tv">IQM star topology (2025): all-to-all connectivity via central resonator</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout green">
+    <div class="ci">🔑</div>
+    <div>
+      <h4>Why We Need Quantum Error Correction</h4>
+      <p>Classical computers: errors per billion–trillion operations. Quantum computers: errors at 10⁻² to 10⁻⁴ per gate (1-qubit better, 2-qubit still struggling at 3–4 nines). The fix is not to wait for perfect qubits — <strong>encode information redundantly across multiple physical qubits, continuously check for errors between them, and correct repeatedly</strong>. This is quantum error correction and it is why logical qubits require so many physical qubits.</p>
+    </div>
+  </div>
+
+  <!-- Study Questions -->
+  <h3 class="mt2">📓 Journal Questions from This Session</h3>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>#</th><th>Question</th><th>Hint</th></tr></thead>
+      <tbody>
+        <tr><td><span class="badge cyan">1</span></td><td class="tk">Dr. Malemath said quantum advantage = quantum + classical outperforming classical alone. How does this change how you should think about designing a quantum application at AQV?</td><td class="tv">Think about your MuleSoft experience — you already design hybrid integration systems</td></tr>
+        <tr><td><span class="badge cyan">2</span></td><td class="tk">The HHL algorithm gives exponential speedup only under very specific assumptions (sparse matrices). What are the practical implications of this for claiming "quantum advantage"?</td><td class="tv">Consider what percentage of real enterprise problems actually have sparse matrices</td></tr>
+        <tr><td><span class="badge cyan">3</span></td><td class="tk">Interference makes quantum algorithms work — they amplify correct answers and cancel wrong ones. Write out in your own words why applying H→H on |0⟩ returns |0⟩. Then try it in Qiskit.</td><td class="tv">Draw the amplitude flow step by step — the cancellation is the key insight</td></tr>
+        <tr><td><span class="badge cyan">4</span></td><td class="tk">Transpilation adds gates (H → RZ + √X + RZ). What does this mean for your circuit depth budget given T₂ limits?</td><td class="tv">Use the Coherence Calculator above — set gate time to account for transpiled depth</td></tr>
+        <tr><td><span class="badge cyan">5</span></td><td class="tk">IQM's star topology gives all-to-all connectivity. Dr. Seeper from IQM speaks in Week 2. Prepare one sharp question about how star topology affects transpilation overhead.</td><td class="tv">If all qubits are connected, what happens to SWAP gate overhead in transpilation?</td></tr>
       </tbody>
     </table>
   </div>
