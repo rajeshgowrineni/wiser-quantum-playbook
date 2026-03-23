@@ -1,0 +1,1517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WISER Quantum Playbook — Rajesh</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Lora:ital,wght@0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ── RESET & ROOT ───────────────────────────────────────── */
+:root{
+  --bg:#04081a;--bg2:#080f26;--bg3:#0d1635;--panel:#0b1228;
+  --border:#1a2a4a;--border2:#243558;
+  --cyan:#00e5ff;--cyan2:#00b4cc;
+  --violet:#7c3aed;--violet2:#a855f7;
+  --gold:#f59e0b;--green:#10b981;--red:#ef4444;--orange:#f97316;
+  --text:#e2e8f0;--text2:#94a3b8;--text3:#475569;
+  --mono:'Space Mono',monospace;
+  --serif:'Lora',serif;
+  --sans:'DM Sans',sans-serif;
+  --r:12px;--r2:6px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:var(--sans);font-size:16px;line-height:1.7;
+  overflow-x:hidden;
+}
+body::before{
+  content:'';position:fixed;inset:0;
+  background-image:
+    linear-gradient(rgba(0,229,255,.025) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(0,229,255,.025) 1px,transparent 1px);
+  background-size:44px 44px;pointer-events:none;z-index:0;
+}
+
+/* ── TYPOGRAPHY ─────────────────────────────────────────── */
+h1,h2,h3,h4{font-family:var(--serif);line-height:1.25}
+h1{font-size:clamp(1.9rem,4.5vw,3.2rem);font-weight:700}
+h2{font-size:clamp(1.3rem,3vw,1.9rem);font-weight:600;margin-bottom:.75rem}
+h3{font-size:clamp(1rem,2vw,1.3rem);font-weight:600;margin-bottom:.5rem}
+p{margin-bottom:.9rem}
+code,.mono{font-family:var(--mono);font-size:.83em;background:rgba(0,229,255,.09);padding:.15em .4em;border-radius:4px;color:var(--cyan)}
+strong{color:#fff;font-weight:600}
+ul,ol{padding-left:1.4rem;margin-bottom:.9rem}
+li{margin-bottom:.35rem}
+a{color:var(--cyan);text-decoration:none}
+
+/* ── APP SHELL ──────────────────────────────────────────── */
+.app{display:flex;min-height:100vh;position:relative;z-index:1}
+
+/* SIDEBAR */
+#sidebar{
+  width:256px;flex-shrink:0;
+  background:var(--panel);border-right:1px solid var(--border);
+  position:fixed;top:0;left:0;bottom:0;
+  overflow-y:auto;z-index:100;
+  display:flex;flex-direction:column;
+  transition:transform .28s ease;
+}
+.sb-logo{padding:1.4rem 1.2rem 1rem;border-bottom:1px solid var(--border)}
+.sb-logo .tag{font-family:var(--mono);font-size:.68rem;color:var(--cyan);letter-spacing:.12em;text-transform:uppercase;margin-bottom:.45rem}
+.sb-logo h3{font-family:var(--mono);font-size:.92rem;color:#fff;margin:0}
+.sb-logo .sub{font-size:.75rem;color:var(--text2);margin-top:.18rem}
+.prog-bar{height:3px;background:var(--border);border-radius:2px;margin-top:.6rem;overflow:hidden}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--cyan),var(--violet2));border-radius:2px;transition:width .5s ease;width:0%}
+
+nav{padding:.6rem 0;flex:1}
+.nav-sec{font-family:var(--mono);font-size:.63rem;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;padding:.85rem 1.2rem .28rem}
+nav a{
+  display:flex;align-items:center;gap:.55rem;
+  padding:.5rem 1.2rem;font-size:.82rem;color:var(--text2);
+  border-left:2px solid transparent;transition:all .18s;
+}
+nav a:hover,nav a.active{color:var(--cyan);background:rgba(0,229,255,.05);border-left-color:var(--cyan)}
+.ndot{width:6px;height:6px;border-radius:50%;background:var(--border);flex-shrink:0;transition:background .18s}
+nav a:hover .ndot,nav a.active .ndot{background:var(--cyan);box-shadow:0 0 6px var(--cyan)}
+
+.sb-foot{padding:.9rem 1.2rem;border-top:1px solid var(--border);font-size:.73rem;color:var(--text3)}
+
+/* TOPBAR */
+#topbar{
+  display:none;position:sticky;top:0;z-index:90;
+  background:rgba(4,8,26,.95);backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--border);
+  padding:.7rem 1rem;align-items:center;justify-content:space-between;
+}
+#menu-btn{background:none;border:1px solid var(--border);color:var(--text2);cursor:pointer;border-radius:6px;padding:.35rem .6rem;font-size:1.1rem}
+#tb-title{font-family:var(--mono);font-size:.78rem;color:var(--cyan)}
+#overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:99}
+#overlay.show{display:block}
+
+/* MAIN */
+main{margin-left:256px;flex:1;min-width:0}
+section{padding:3.5rem clamp(1.2rem,4vw,3rem);border-bottom:1px solid var(--border);max-width:880px}
+
+.sec-tag{font-family:var(--mono);font-size:.68rem;color:var(--cyan);letter-spacing:.15em;text-transform:uppercase;margin-bottom:.7rem;display:flex;align-items:center;gap:.5rem}
+.sec-tag::after{content:'';flex:1;height:1px;background:var(--border);max-width:70px}
+
+/* ── HERO ───────────────────────────────────────────────── */
+#hero{padding:4.5rem clamp(1.2rem,4vw,3rem) 3.5rem;max-width:880px}
+.hero-badge{display:inline-flex;align-items:center;gap:.5rem;background:rgba(124,58,237,.14);border:1px solid rgba(124,58,237,.38);border-radius:50px;padding:.3rem .9rem;font-family:var(--mono);font-size:.72rem;color:var(--violet2);margin-bottom:1.4rem}
+.hero-badge .dot{width:6px;height:6px;border-radius:50%;background:var(--violet2);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.8)}}
+.hero-meta{display:flex;flex-wrap:wrap;gap:1.2rem;margin:1.4rem 0 1.8rem}
+.hm-item{font-size:.82rem;color:var(--text2);display:flex;align-items:center;gap:.38rem}
+.hm-item .lbl{color:var(--cyan);font-family:var(--mono);font-size:.7rem}
+.hero-paper{background:var(--panel);border:1px solid var(--border);border-radius:var(--r);padding:1.1rem 1.4rem;display:flex;gap:.9rem;align-items:flex-start;box-shadow:0 0 20px rgba(0,229,255,.12)}
+.hero-paper .ic{font-size:1.7rem;flex-shrink:0}
+.hero-paper h4{font-family:var(--mono);font-size:.77rem;color:var(--cyan);margin-bottom:.28rem}
+.hero-paper p{font-size:.85rem;color:var(--text2);margin:0}
+
+/* ── PANELS & CALLOUTS ──────────────────────────────────── */
+.panel{background:var(--panel);border:1px solid var(--border);border-radius:var(--r);padding:1.4rem;margin:1.1rem 0}
+.panel.cyan{border-color:rgba(0,229,255,.28);box-shadow:0 0 18px rgba(0,229,255,.1)}
+.panel.violet{border-color:rgba(124,58,237,.32);box-shadow:0 0 18px rgba(124,58,237,.08)}
+.panel.gold{border-color:rgba(245,158,11,.3);box-shadow:0 0 18px rgba(245,158,11,.06)}
+.panel.green{border-color:rgba(16,185,129,.3)}
+
+.callout{border-radius:var(--r2);padding:.9rem 1.1rem;margin:.9rem 0;display:flex;gap:.7rem}
+.callout.cyan{background:rgba(0,229,255,.06);border-left:3px solid var(--cyan)}
+.callout.violet{background:rgba(124,58,237,.09);border-left:3px solid var(--violet2)}
+.callout.gold{background:rgba(245,158,11,.07);border-left:3px solid var(--gold)}
+.callout.green{background:rgba(16,185,129,.07);border-left:3px solid var(--green)}
+.callout .ci{font-size:1.15rem;flex-shrink:0;margin-top:.08rem}
+.callout h4{font-family:var(--mono);font-size:.74rem;margin-bottom:.22rem;text-transform:uppercase;letter-spacing:.08em}
+.callout.cyan h4{color:var(--cyan)}.callout.violet h4{color:var(--violet2)}.callout.gold h4{color:var(--gold)}.callout.green h4{color:var(--green)}
+.callout p{font-size:.85rem;margin:0}
+
+.itag{display:inline-flex;align-items:center;gap:.38rem;font-family:var(--mono);font-size:.66rem;color:var(--gold);background:rgba(245,158,11,.09);border:1px solid rgba(245,158,11,.28);border-radius:50px;padding:.18rem .7rem;margin-bottom:.7rem}
+
+/* ── TABLES ─────────────────────────────────────────────── */
+.tbl-wrap{overflow-x:auto;margin:1rem 0;border-radius:var(--r);border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:.85rem}
+thead th{background:var(--bg3);color:var(--cyan);font-family:var(--mono);font-size:.69rem;letter-spacing:.08em;text-transform:uppercase;padding:.7rem 1rem;text-align:left;border-bottom:1px solid var(--border)}
+tbody td{padding:.62rem 1rem;border-bottom:1px solid rgba(26,42,74,.55);vertical-align:top}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:rgba(0,229,255,.025)}
+.tk{color:#fff;font-weight:500;white-space:nowrap}
+.tv{color:var(--text2)}
+.badge{display:inline-block;padding:.18rem .55rem;border-radius:4px;font-family:var(--mono);font-size:.7rem;font-weight:700}
+.badge.cyan{background:rgba(0,229,255,.14);color:var(--cyan)}
+.badge.violet{background:rgba(124,58,237,.18);color:var(--violet2)}
+.badge.gold{background:rgba(245,158,11,.14);color:var(--gold)}
+.badge.green{background:rgba(16,185,129,.14);color:var(--green)}
+.badge.red{background:rgba(239,68,68,.14);color:var(--red)}
+.badge.orange{background:rgba(249,115,22,.14);color:var(--orange)}
+
+/* ── GRID ───────────────────────────────────────────────── */
+.g2{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem;margin:.8rem 0}
+
+/* ── SLIDERS ────────────────────────────────────────────── */
+.sl-row{margin-bottom:1.1rem}
+.sl-lbl{display:flex;justify-content:space-between;font-family:var(--mono);font-size:.75rem;margin-bottom:.38rem}
+.sl-lbl span:first-child{color:var(--text2)}
+.sl-lbl .val{color:var(--cyan)}
+input[type=range]{width:100%;-webkit-appearance:none;appearance:none;height:4px;background:var(--border);border-radius:2px;outline:none;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;height:15px;border-radius:50%;background:var(--cyan);cursor:pointer;box-shadow:0 0 8px var(--cyan)}
+input[type=range]::-moz-range-thumb{width:15px;height:15px;border-radius:50%;background:var(--cyan);cursor:pointer;border:none;box-shadow:0 0 8px var(--cyan)}
+
+/* ── BUTTONS ────────────────────────────────────────────── */
+.btn{display:inline-flex;align-items:center;gap:.45rem;border:none;border-radius:var(--r2);padding:.55rem 1.25rem;font-family:var(--mono);font-size:.78rem;font-weight:700;cursor:pointer;transition:all .18s}
+.btn.cyan{background:var(--cyan);color:var(--bg)}
+.btn.cyan:hover{background:var(--cyan2)}
+.btn.violet{background:var(--violet2);color:#fff}
+.btn.violet:hover{background:var(--violet)}
+.btn.ghost{background:transparent;border:1px solid var(--border);color:var(--text2)}
+.btn.ghost:hover{border-color:var(--cyan);color:var(--cyan)}
+.btn-row{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.75rem}
+
+/* ── PROBABILITY BARS ───────────────────────────────────── */
+.prob-bars{margin-top:.7rem}
+.pb-row{display:flex;align-items:center;gap:.7rem;margin-bottom:.38rem}
+.pb-lbl{font-family:var(--mono);font-size:.72rem;color:var(--text2);width:28px}
+.pb-track{flex:1;height:9px;background:var(--border);border-radius:5px;overflow:hidden}
+.pb-fill{height:100%;border-radius:5px;transition:width .12s ease}
+.pb-fill.p0{background:linear-gradient(90deg,var(--cyan),var(--cyan2))}
+.pb-fill.p1{background:linear-gradient(90deg,var(--violet2),var(--violet))}
+.pb-pct{font-family:var(--mono);font-size:.72rem;width:36px;text-align:right}
+
+/* ── CANVASES ───────────────────────────────────────────── */
+canvas{display:block;border-radius:var(--r);background:var(--bg);border:1px solid var(--border)}
+
+/* ── BLOCH ──────────────────────────────────────────────── */
+.bloch-wrap{display:flex;flex-wrap:wrap;gap:1.4rem;align-items:flex-start}
+.bloch-ctrl{flex:1;min-width:210px}
+.state-box{background:var(--bg3);border-radius:var(--r2);padding:.7rem .9rem;font-family:var(--mono);font-size:.82rem;margin-top:.7rem}
+.state-box .lbl{color:var(--text3);font-size:.68rem;margin-bottom:.2rem}
+.state-box .val{color:var(--cyan);font-size:.95rem;word-break:break-all}
+
+/* ── COLLAPSE ───────────────────────────────────────────── */
+.collapse-wrap{text-align:center}
+#collapse-result{font-family:var(--mono);font-size:1.4rem;margin:.6rem 0;min-height:1.8rem}
+#shot-count{font-family:var(--mono);font-size:.72rem;color:var(--text3);margin-top:.4rem}
+
+/* ── COHERENCE ──────────────────────────────────────────── */
+.coh-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;align-items:start}
+.coh-stat{background:var(--bg3);border-radius:var(--r2);padding:.85rem;text-align:center;border:1px solid var(--border)}
+.coh-stat .num{font-family:var(--mono);font-size:1.55rem;font-weight:700;color:var(--cyan)}
+.coh-stat .unit{font-size:.68rem;color:var(--text3);font-family:var(--mono)}
+.coh-stat .lbl{font-size:.75rem;color:var(--text2);margin-top:.15rem}
+.coh-stats{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-top:.7rem}
+
+/* ── CIRCUIT ────────────────────────────────────────────── */
+#circuit-wrap{overflow-x:auto}
+.gate-btns{display:flex;gap:.45rem;flex-wrap:wrap;margin-top:.7rem;justify-content:center}
+.gbtn{padding:.42rem .9rem;border-radius:var(--r2);font-family:var(--mono);font-size:.75rem;font-weight:700;border:1px solid;cursor:pointer;transition:all .18s;background:transparent}
+.gbtn.h{color:var(--gold);border-color:var(--gold)}.gbtn.h:hover{background:rgba(245,158,11,.12)}
+.gbtn.cx{color:var(--violet2);border-color:var(--violet2)}.gbtn.cx:hover{background:rgba(168,85,247,.12)}
+.gbtn.m{color:var(--green);border-color:var(--green)}.gbtn.m:hover{background:rgba(16,185,129,.12)}
+.gbtn.r{color:var(--red);border-color:var(--red)}.gbtn.r:hover{background:rgba(239,68,68,.12)}
+#bell-out{background:var(--bg3);border-radius:var(--r2);padding:.7rem 1rem;font-family:var(--mono);font-size:.88rem;margin-top:.7rem;text-align:center;color:var(--cyan);word-break:break-all}
+
+/* ── RADAR ──────────────────────────────────────────────── */
+.radar-wrap{display:flex;flex-wrap:wrap;gap:1.4rem;align-items:center;justify-content:center}
+.plat-btns{display:flex;flex-direction:column;gap:.45rem}
+.pbtn{display:flex;align-items:center;gap:.45rem;cursor:pointer;padding:.45rem .7rem;border-radius:var(--r2);border:1px solid var(--border);background:var(--bg3);font-size:.8rem;transition:all .18s;white-space:nowrap;color:var(--text2)}
+.pbtn:hover{border-color:var(--cyan)}
+.pbtn.on{border-color:var(--cyan);background:rgba(0,229,255,.07);color:#fff}
+.pdot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+
+/* ── NISQ ───────────────────────────────────────────────── */
+.nisq-grid{display:grid;grid-template-columns:1fr auto;gap:1.4rem;align-items:start}
+.gauge-wrap{text-align:center}
+.gauge-label{font-family:var(--mono);font-size:1.8rem;font-weight:700;color:var(--cyan);margin-top:.4rem}
+.gauge-sub{font-size:.74rem;color:var(--text3);font-family:var(--mono)}
+#nisq-verdict{margin-top:.9rem;padding:.7rem .9rem;border-radius:var(--r2);font-family:var(--mono);font-size:.78rem;text-align:center;min-height:2.5rem}
+
+/* ── TRACKER ────────────────────────────────────────────── */
+.week-card{background:var(--panel);border:1px solid var(--border);border-radius:var(--r);padding:1.1rem 1.2rem;margin-bottom:.9rem;transition:border-color .2s}
+.week-card.upcoming .wk-num{color:var(--text3)}
+.week-card.active{border-color:rgba(0,229,255,.38);box-shadow:0 0 16px rgba(0,229,255,.08)}
+.week-card.active .wk-num{color:var(--cyan);border-color:rgba(0,229,255,.38)}
+.week-card.done{border-color:rgba(16,185,129,.35)}
+.week-card.done .wk-num{color:var(--green);border-color:rgba(16,185,129,.35)}
+.wk-header{display:flex;align-items:center;gap:.7rem;margin-bottom:.8rem;flex-wrap:wrap}
+.wk-num{font-family:var(--mono);font-size:.77rem;font-weight:700;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.22rem .55rem;color:var(--text2);white-space:nowrap}
+.wk-title{font-family:var(--mono);font-size:.85rem;color:#fff}
+.wk-date{font-size:.75rem;color:var(--text3);margin-left:auto}
+.checklist{list-style:none;padding:0;margin:0}
+.checklist li{display:flex;align-items:flex-start;gap:.55rem;padding:.28rem 0;font-size:.82rem;color:var(--text2);border-bottom:1px solid rgba(26,42,74,.4);cursor:pointer;transition:color .18s;user-select:none}
+.checklist li:last-child{border-bottom:none}
+.checklist li:hover{color:var(--text)}
+.checklist li.checked{color:var(--text3);text-decoration:line-through}
+.chk{width:15px;height:15px;border:1px solid var(--border);border-radius:3px;flex-shrink:0;margin-top:.18rem;display:flex;align-items:center;justify-content:center;transition:all .18s;font-size:.6rem}
+.checklist li.checked .chk{background:var(--green);border-color:var(--green);color:#fff}
+.journal-section{margin-top:.9rem;padding-top:.9rem;border-top:1px solid var(--border)}
+.journal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.6rem;flex-wrap:wrap;gap:.4rem}
+.journal-header h5{font-family:var(--mono);font-size:.7rem;color:var(--violet2);text-transform:uppercase;letter-spacing:.08em}
+.journal-prompt{font-size:.82rem;color:var(--text2);margin-bottom:.6rem;padding:.6rem .8rem;background:var(--bg3);border-radius:var(--r2);border-left:3px solid var(--violet2)}
+.journal-entries{display:flex;flex-direction:column;gap:.5rem;margin-bottom:.6rem}
+.j-entry{background:var(--bg3);border-radius:var(--r2);padding:.6rem .8rem;border:1px solid var(--border)}
+.j-entry-header{display:flex;justify-content:space-between;margin-bottom:.3rem}
+.j-entry-date{font-family:var(--mono);font-size:.65rem;color:var(--text3)}
+.j-entry-del{font-family:var(--mono);font-size:.65rem;color:var(--red);cursor:pointer;opacity:.6;background:none;border:none;cursor:pointer}
+.j-entry-del:hover{opacity:1}
+.j-entry-text{font-size:.82rem;color:var(--text2);white-space:pre-wrap;word-break:break-word}
+.journal-input-wrap{display:flex;flex-direction:column;gap:.5rem}
+textarea.j-input{
+  width:100%;min-height:72px;padding:.6rem .8rem;
+  background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);
+  color:var(--text);font-family:var(--sans);font-size:.85rem;resize:vertical;outline:none;
+  transition:border-color .18s;line-height:1.5;
+}
+textarea.j-input:focus{border-color:var(--violet2)}
+textarea.j-input::placeholder{color:var(--text3)}
+
+/* ── GLOSSARY ───────────────────────────────────────────── */
+#gsearch{
+  width:100%;padding:.65rem 1rem;margin-bottom:.9rem;
+  background:var(--panel);border:1px solid var(--border);border-radius:var(--r2);
+  color:var(--text);font-family:var(--sans);font-size:.88rem;outline:none;transition:border-color .18s;
+}
+#gsearch:focus{border-color:var(--cyan)}
+#gsearch::placeholder{color:var(--text3)}
+.g-item{padding:.7rem 0;border-bottom:1px solid var(--border);display:flex;gap:1rem}
+.g-item:last-child{border-bottom:none}
+.g-term{font-family:var(--mono);font-size:.85rem;color:var(--cyan);min-width:150px;flex-shrink:0}
+.g-def{font-size:.85rem;color:var(--text2)}
+.g-def strong{color:var(--text)}
+.g-none{font-family:var(--mono);font-size:.82rem;color:var(--text3);text-align:center;padding:1.5rem}
+
+/* ── TIMELINE ───────────────────────────────────────────── */
+.timeline{position:relative;padding-left:2rem;margin-top:.5rem}
+.timeline::before{content:'';position:absolute;left:.45rem;top:0;bottom:0;width:2px;background:linear-gradient(var(--border),var(--violet),var(--border))}
+.tl-item{position:relative;margin-bottom:1.8rem}
+.tl-dot{position:absolute;left:-1.7rem;top:.3rem;width:13px;height:13px;border-radius:50%;border:2px solid}
+.tl-year{font-family:var(--mono);font-size:.72rem;margin-bottom:.18rem}
+.tl-title{font-size:.98rem;font-weight:600;color:#fff;margin-bottom:.25rem}
+.tl-desc{font-size:.83rem;color:var(--text2)}
+
+/* ── MOBILE ─────────────────────────────────────────────── */
+@media(max-width:768px){
+  #sidebar{transform:translateX(-100%)}
+  #sidebar.open{transform:translateX(0);box-shadow:0 0 40px rgba(0,0,0,.8)}
+  main{margin-left:0}
+  #topbar{display:flex}
+  .coh-grid,.nisq-grid,.bloch-wrap{grid-template-columns:1fr;flex-direction:column}
+  .radar-wrap{flex-direction:column}
+  .plat-btns{flex-direction:row;flex-wrap:wrap}
+  section{padding:2.5rem 1.1rem}
+  #hero{padding:2.5rem 1.1rem 2rem}
+  .g-item{flex-direction:column;gap:.3rem}
+  .g-term{min-width:auto}
+}
+@media(max-width:480px){
+  h1{font-size:1.6rem}
+  h2{font-size:1.15rem}
+  .nisq-grid{grid-template-columns:1fr}
+  .gauge-wrap{margin:0 auto}
+}
+
+/* ── UTILS ──────────────────────────────────────────────── */
+.mt{margin-top:1rem}.mt2{margin-top:1.5rem}
+.reveal{opacity:0;transform:translateY(18px);transition:opacity .45s ease,transform .45s ease}
+.reveal.vis{opacity:1;transform:none}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR (mobile) -->
+<div id="topbar">
+  <button id="menu-btn">☰</button>
+  <span id="tb-title">WISER Quantum Playbook</span>
+  <span style="font-family:var(--mono);font-size:.68rem;color:var(--gold)">Phase 2</span>
+</div>
+<div id="overlay"></div>
+
+<div class="app">
+<!-- SIDEBAR -->
+<aside id="sidebar">
+  <div class="sb-logo">
+    <div class="tag">WISER Quantum · Phase 2</div>
+    <h3>Rajesh's Playbook</h3>
+    <div class="sub">Mar 23 – May 1, 2026</div>
+    <div class="prog-bar"><div class="prog-fill" id="prog-fill"></div></div>
+  </div>
+  <nav id="sb-nav">
+    <div class="nav-sec">Overview</div>
+    <a href="#hero"><span class="ndot"></span>Cover & Paper</a>
+    <a href="#abstract"><span class="ndot"></span>Abstract</a>
+    <div class="nav-sec">Paper Sections</div>
+    <a href="#s1"><span class="ndot"></span>1 · Introduction</a>
+    <a href="#s2"><span class="ndot"></span>2 · QM Fundamentals</a>
+    <a href="#s3"><span class="ndot"></span>3 · Qubit Desiderata</a>
+    <a href="#s4"><span class="ndot"></span>4 · Towards QC</a>
+    <a href="#conclusion"><span class="ndot"></span>Conclusion</a>
+    <div class="nav-sec">Interactive Labs</div>
+    <a href="#s2">⚛ Bloch Sphere</a>
+    <a href="#s2">⚡ Measurement Collapse</a>
+    <a href="#s2">🔗 Bell Circuit Builder</a>
+    <a href="#s2">📊 Coherence Calculator</a>
+    <a href="#s3">🎯 Platform Radar</a>
+    <a href="#s4">🔢 NISQ Fidelity Gauge</a>
+    <div class="nav-sec">Study Tools</div>
+    <a href="#tracker"><span class="ndot"></span>6-Week Tracker</a>
+    <a href="#glossary"><span class="ndot"></span>Glossary</a>
+    <a href="#roadmap"><span class="ndot"></span>Roadmap</a>
+  </nav>
+  <div class="sb-foot">
+    <div>Goal: Top 100 of 62,000+</div>
+    <div style="color:var(--gold);margin-top:.18rem">🏆 Global Summer School</div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-badge"><span class="dot"></span>Phase 2 · Active from March 23, 2026</div>
+  <h1>Qubit Fundamentals<br><span style="color:var(--cyan)">Research Playbook</span></h1>
+  <p style="color:var(--text2);font-size:1.05rem;max-width:580px;margin-top:.4rem">Your structured guide to mastering qubits and quantum computing — from first principles to fault-tolerant machines.</p>
+  <div class="hero-meta">
+    <div class="hm-item"><span class="lbl">Learner</span>Rajesh · Software Integration Engineer</div>
+    <div class="hm-item"><span class="lbl">Selection</span>Top 3,000 of 62,000+ (Top 5%)</div>
+    <div class="hm-item"><span class="lbl">Program</span>WISER Quantum Phase 2 · 6 weeks</div>
+    <div class="hm-item"><span class="lbl">Target</span>Top 100 → Global Summer School</div>
+  </div>
+  <div class="hero-paper">
+    <div class="ic">📄</div>
+    <div>
+      <h4>Source Paper</h4>
+      <p><strong>An Elementary Review on Basic Principles and Developments of Qubits for Quantum Computing</strong><br>
+      Chae, Choi &amp; Kim · <em>Nano Convergence</em> (2024) 11:11 · Open Access · DOI: 10.1186/s40580-024-00418-5</p>
+    </div>
+  </div>
+</section>
+
+<!-- ABSTRACT -->
+<section id="abstract" class="reveal">
+  <div class="sec-tag">§ Abstract</div>
+  <h2>At a Glance</h2>
+  <p>An elementary, cross-disciplinary review of qubit principles, designed for researchers outside physics — including material scientists, nanotechnologists, and <strong>software engineers</strong>. Perfect anchor resource for WISER Phase 2.</p>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Core Claim</th><th>WISER Relevance</th></tr></thead>
+      <tbody>
+        <tr><td class="tk">QC = superposition + entanglement</td><td class="tv">Week 1 &amp; 2 foundations — Qiskit circuits physically implement both</td></tr>
+        <tr><td class="tk">Logical qubits = many physical qubits</td><td class="tv">Error correction is the field's central engineering challenge</td></tr>
+        <tr><td class="tk">Multiple platforms compete — no winner</td><td class="tv">Lets you ask sharper Q&amp;A questions to IBM, qBraid, Xanadu speakers</td></tr>
+        <tr><td class="tk">Error rates must fall for fault tolerance</td><td class="tv">Week 3 Aer noise models simulate exactly this</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="callout cyan">
+    <div class="ci">💡</div>
+    <div>
+      <h4>Rajesh's One-Sentence Summary</h4>
+      <p>The paper explains what a qubit is, what requirements it must meet, how various physical systems try to meet those requirements, and what the path to fault-tolerant quantum computers looks like — without assuming a physics background.</p>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 1 -->
+<section id="s1" class="reveal">
+  <div class="sec-tag">§ 1 · Introduction</div>
+  <h2>Why Qubits Matter</h2>
+  <p>Classical computers hit fundamental limits in chemistry, materials science, and optimisation. Quantum computing exploits <strong>superposition</strong> and <strong>entanglement</strong> to solve specific problem classes exponentially faster.</p>
+  <div class="g2">
+    <div class="panel cyan">
+      <div class="mono" style="font-size:.68rem;color:var(--cyan);margin-bottom:.4rem">QUANTUM ADVANTAGE</div>
+      <p style="margin:0;font-size:.85rem">Google's 53-qubit Sycamore (2019) performed a sampling task in 200 seconds that would take a classical supercomputer ~10,000 years.</p>
+    </div>
+    <div class="panel violet">
+      <div class="mono" style="font-size:.68rem;color:var(--violet2);margin-bottom:.4rem">THE SCALING PROBLEM</div>
+      <p style="margin:0;font-size:.85rem">At 0.1% physical qubit error rate, <strong>~1,000–10,000 physical qubits</strong> are needed to create one reliable logical qubit.</p>
+    </div>
+  </div>
+  <h3 class="mt">Platform Landscape</h3>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Platform</th><th>Companies</th><th>Gate Speed</th><th>Coherence</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td class="tk">Superconducting</td><td class="tv">IBM, Google</td><td class="tv">~50 ns</td><td class="tv">~100–300 μs</td><td><span class="badge cyan">Leading</span></td></tr>
+        <tr><td class="tk">Trapped Ions</td><td class="tv">IonQ, Quantinuum</td><td class="tv">~1–100 μs</td><td class="tv">Seconds–minutes</td><td><span class="badge violet">High fidelity</span></td></tr>
+        <tr><td class="tk">Neutral Atoms</td><td class="tv">QuEra, Atom Computing</td><td class="tv">~μs</td><td class="tv">Seconds</td><td><span class="badge green">Scalable</span></td></tr>
+        <tr><td class="tk">Photonic</td><td class="tv">Xanadu, PsiQuantum</td><td class="tv">~ps</td><td class="tv">Room temp</td><td><span class="badge gold">Week 6</span></td></tr>
+        <tr><td class="tk">Semiconductor</td><td class="tv">Intel, SiQuance</td><td class="tv">~ns</td><td class="tv">~ms</td><td><span class="badge orange">CMOS-compat.</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- SECTION 2 -->
+<section id="s2" class="reveal">
+  <div class="sec-tag">§ 2 · Quantum Mechanics Fundamentals</div>
+  <h2>The Four Pillars</h2>
+
+  <!-- 2.1 BLOCH SPHERE -->
+  <h3>2.1 Superposition &amp; The Bloch Sphere</h3>
+  <p>A qubit exists in state <code>|ψ⟩ = α|0⟩ + β|1⟩</code> where |α|²+|β|²=1. Every pure qubit state maps to a point on the Bloch sphere surface.</p>
+  <div class="panel cyan">
+    <div class="itag">⚡ Interactive · Bloch Sphere Explorer</div>
+    <div class="bloch-wrap">
+      <canvas id="bloch-cv" width="250" height="250" style="flex-shrink:0"></canvas>
+      <div class="bloch-ctrl">
+        <div class="sl-row">
+          <div class="sl-lbl"><span>θ (polar angle)</span><span class="val" id="tv-theta">90°</span></div>
+          <input type="range" id="sl-theta" min="0" max="180" value="90">
+        </div>
+        <div class="sl-row">
+          <div class="sl-lbl"><span>φ (azimuthal / phase)</span><span class="val" id="tv-phi">0°</span></div>
+          <input type="range" id="sl-phi" min="0" max="360" value="0">
+        </div>
+        <div class="state-box">
+          <div class="lbl">Current state |ψ⟩ =</div>
+          <div class="val" id="state-formula">0.71|0⟩ + 0.71|1⟩</div>
+          <div class="prob-bars">
+            <div class="pb-row">
+              <span class="pb-lbl">|0⟩</span>
+              <div class="pb-track"><div class="pb-fill p0" id="pb0" style="width:50%"></div></div>
+              <span class="pb-pct" id="pp0" style="color:var(--cyan)">50%</span>
+            </div>
+            <div class="pb-row">
+              <span class="pb-lbl">|1⟩</span>
+              <div class="pb-track"><div class="pb-fill p1" id="pb1" style="width:50%"></div></div>
+              <span class="pb-pct" id="pp1" style="color:var(--violet2)">50%</span>
+            </div>
+          </div>
+        </div>
+        <p style="font-size:.75rem;color:var(--text3);margin-top:.6rem;margin-bottom:0">Try: θ=0→|0⟩ · θ=180→|1⟩ · θ=90→superposition · φ shifts phase</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- MEASUREMENT COLLAPSE -->
+  <div class="panel mt">
+    <div class="itag">⚡ Interactive · Wavefunction Collapse</div>
+    <p style="font-size:.85rem;color:var(--text2);margin-bottom:.7rem">Qubit is in equal superposition (|0⟩+|1⟩)/√2. Press <strong>Measure</strong> — the wavefunction collapses to one definite state. Press many times to see quantum statistics emerge.</p>
+    <div class="collapse-wrap">
+      <canvas id="collapse-cv" width="400" height="110"></canvas>
+      <div id="collapse-result"></div>
+      <div id="shot-count">Shots: 0 · |0⟩: 0 · |1⟩: 0</div>
+      <div class="btn-row" style="justify-content:center">
+        <button class="btn cyan" id="btn-measure">⚡ Measure</button>
+        <button class="btn ghost" id="btn-reset-col">↺ Reset</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2.2 ENTANGLEMENT + BELL CIRCUIT -->
+  <h3 class="mt2">2.2 Entanglement &amp; Bell States</h3>
+  <p>Entanglement is a multi-particle state that cannot be factored into individual states. Measuring one qubit instantly determines the other — regardless of distance. The <strong>Bell states</strong> are the four maximally entangled two-qubit states.</p>
+  <div class="panel violet">
+    <div class="itag" style="color:var(--violet2);background:rgba(124,58,237,.1);border-color:rgba(124,58,237,.3)">⚡ Interactive · Bell State Circuit Builder</div>
+    <p style="font-size:.85rem;color:var(--text2);margin-bottom:.7rem">Add gates step by step and watch the quantum state evolve.</p>
+    <div id="circuit-wrap"><canvas id="circuit-cv" width="560" height="130"></canvas></div>
+    <div class="gate-btns">
+      <button class="gbtn h" id="gbtn-h">H gate (Hadamard)</button>
+      <button class="gbtn cx" id="gbtn-cx">CX gate (CNOT)</button>
+      <button class="gbtn m" id="gbtn-m">Measure</button>
+      <button class="gbtn r" id="gbtn-r">Reset</button>
+    </div>
+    <div id="bell-out">Initial state: |00⟩</div>
+  </div>
+
+  <!-- 2.3 COHERENCE -->
+  <h3 class="mt2">2.3 Coherence Times — T₁ &amp; T₂</h3>
+  <p>Your quantum circuit must complete before the qubit decoheres. <strong>T₁</strong> = energy relaxation (|1⟩→|0⟩). <strong>T₂</strong> = phase coherence decay. Physical law: <strong>T₂ ≤ 2T₁</strong>.</p>
+  <div class="panel gold">
+    <div class="itag" style="color:var(--gold);background:rgba(245,158,11,.08);border-color:rgba(245,158,11,.28)">⚡ Interactive · Coherence Budget Calculator</div>
+    <div class="coh-grid">
+      <div>
+        <div class="sl-row">
+          <div class="sl-lbl"><span>T₁ (relaxation time)</span><span class="val" id="tv-t1">300 μs</span></div>
+          <input type="range" id="sl-t1" min="10" max="1000" value="300" step="10">
+        </div>
+        <div class="sl-row">
+          <div class="sl-lbl"><span>T₂ (dephasing time)</span><span class="val" id="tv-t2">150 μs</span></div>
+          <input type="range" id="sl-t2" min="5" max="500" value="150" step="5">
+        </div>
+        <div class="sl-row">
+          <div class="sl-lbl"><span>Gate time</span><span class="val" id="tv-gt">50 ns</span></div>
+          <input type="range" id="sl-gt" min="5" max="500" value="50" step="5">
+        </div>
+        <div class="coh-stats">
+          <div class="coh-stat">
+            <div class="num" id="gate-budget">3000</div>
+            <div class="unit">gates max</div>
+            <div class="lbl">Circuit depth budget</div>
+          </div>
+          <div class="coh-stat">
+            <div class="num" id="t2-check" style="color:var(--green)">✓</div>
+            <div class="unit" id="t2-check-lbl">T₂ ≤ 2T₁</div>
+            <div class="lbl">Physical law</div>
+          </div>
+        </div>
+      </div>
+      <canvas id="coh-cv" width="270" height="195"></canvas>
+    </div>
+  </div>
+  <div class="callout green mt">
+    <div class="ci">🔬</div>
+    <div>
+      <h4>Week 3 Connection — qBraid Real Hardware</h4>
+      <p>When you run on qBraid hardware, look up the real T₁ and T₂ values in the calibration data. Set them in the calculator above to see your actual circuit depth budget on that device.</p>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 3 -->
+<section id="s3" class="reveal">
+  <div class="sec-tag">§ 3 · Desiderata for Qubits</div>
+  <h2>What Makes a Good Qubit</h2>
+  <p>DiVincenzo's five criteria define the minimum bar any physical qubit system must clear. No current system meets all five perfectly — that tension drives most quantum engineering research.</p>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>#</th><th>Criterion</th><th>What It Means</th><th>In Qiskit</th></tr></thead>
+      <tbody>
+        <tr><td><span class="badge cyan">1</span></td><td class="tk">Initialization</td><td class="tv">Reliably reset to |0⟩ before each computation</td><td class="tv"><code>qc</code> starts in |0⟩</td></tr>
+        <tr><td><span class="badge cyan">2</span></td><td class="tk">Long Coherence</td><td class="tv">T₂ >> gate duration — more time = deeper circuits</td><td class="tv">T₁, T₂ in qBraid calibration</td></tr>
+        <tr><td><span class="badge cyan">3</span></td><td class="tk">Universal Gates</td><td class="tv">Any rotation + CNOT = any quantum algorithm</td><td class="tv"><code>H, X, CNOT</code></td></tr>
+        <tr><td><span class="badge cyan">4</span></td><td class="tk">Readout</td><td class="tv">Distinguish |0⟩ vs |1⟩ reliably</td><td class="tv"><code>measure_all()</code></td></tr>
+        <tr><td><span class="badge red">5</span></td><td class="tk">Scalability</td><td class="tv">More qubits without losing fidelity — hardest</td><td class="tv">IBM 156-qubit Heron at AQV</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- RADAR -->
+  <div class="panel mt">
+    <div class="itag">⚡ Interactive · Platform Comparison Radar</div>
+    <p style="font-size:.85rem;color:var(--text2);margin-bottom:.7rem">Compare qubit platforms across the 5 DiVincenzo criteria. Click buttons to toggle platforms.</p>
+    <div class="radar-wrap">
+      <canvas id="radar-cv" width="300" height="300"></canvas>
+      <div class="plat-btns" id="plat-btns"></div>
+    </div>
+  </div>
+
+  <h3 class="mt2">3.1 Three Types of Physical Qubits</h3>
+  <div class="g2" style="grid-template-columns:repeat(auto-fit,minmax(230px,1fr))">
+    <div class="panel" style="border-color:rgba(0,229,255,.28)">
+      <div style="font-family:var(--mono);font-size:.68rem;color:var(--cyan);margin-bottom:.4rem">TYPE A · Intrinsic Two-Level</div>
+      <p style="font-size:.83rem;color:var(--text2);margin-bottom:.4rem">Nature provides exactly 2 states. No leakage possible.</p>
+      <div style="font-size:.8rem;color:var(--text3)">Electron spin, photon polarisation, NMR nuclei</div>
+      <div class="callout green" style="margin-top:.6rem;padding:.45rem .7rem"><p style="font-size:.78rem;margin:0">✓ Clean qubit space, no leakage errors</p></div>
+    </div>
+    <div class="panel" style="border-color:rgba(124,58,237,.35)">
+      <div style="font-family:var(--mono);font-size:.68rem;color:var(--violet2);margin-bottom:.4rem">TYPE B · Two-Level Subset</div>
+      <p style="font-size:.83rem;color:var(--text2);margin-bottom:.4rem">Choose 2 states from a richer energy spectrum.</p>
+      <div style="font-size:.8rem;color:var(--text3)">Trapped ions (hyperfine, Rydberg), NV centres</div>
+      <div class="callout violet" style="margin-top:.6rem;padding:.45rem .7rem"><p style="font-size:.78rem;margin:0">⚠ Auxiliary states aid gates but cause leakage</p></div>
+    </div>
+    <div class="panel" style="border-color:rgba(16,185,129,.35)">
+      <div style="font-family:var(--mono);font-size:.68rem;color:var(--green);margin-bottom:.4rem">TYPE C · Engineered Two-Level</div>
+      <p style="font-size:.83rem;color:var(--text2);margin-bottom:.4rem">Fabricated Hilbert space — circuit design controls qubit properties.</p>
+      <div style="font-size:.8rem;color:var(--text3)">Superconducting transmon (IBM, Google)</div>
+      <div class="callout green" style="margin-top:.6rem;padding:.45rem .7rem"><p style="font-size:.78rem;margin:0">✓ Tunable / ✗ Fabrication variation</p></div>
+    </div>
+  </div>
+
+  <div class="callout violet mt">
+    <div class="ci">🎯</div>
+    <div>
+      <h4>Universal Gate Set</h4>
+      <p>ANY quantum algorithm decomposes into: (1) arbitrary single-qubit rotations + (2) one two-qubit entangling gate (typically CNOT). This is the quantum equivalent of NAND gates in classical computing.</p>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 4 -->
+<section id="s4" class="reveal">
+  <div class="sec-tag">§ 4 · Towards a Quantum Computer</div>
+  <h2>From Theory to Machines</h2>
+
+  <h3>4.2 NISQ — Where We Are Today</h3>
+  <p>Noisy Intermediate-Scale Quantum (NISQ) devices: 50–1000+ qubits, no error correction, high per-gate fidelity but <strong>exponential error accumulation</strong> across circuits.</p>
+
+  <div class="panel">
+    <div class="itag">⚡ Interactive · NISQ Fidelity Calculator</div>
+    <div class="nisq-grid">
+      <div>
+        <div class="sl-row">
+          <div class="sl-lbl"><span>Per-gate fidelity</span><span class="val" id="tv-fid">99.90%</span></div>
+          <input type="range" id="sl-fid" min="900" max="9999" value="9990">
+        </div>
+        <div class="sl-row">
+          <div class="sl-lbl"><span>Number of gates</span><span class="val" id="tv-gates">100</span></div>
+          <input type="range" id="sl-gates" min="1" max="2000" value="100">
+        </div>
+        <div class="sl-row">
+          <div class="sl-lbl"><span>Number of qubits</span><span class="val" id="tv-qubits">53</span></div>
+          <input type="range" id="sl-qubits" min="1" max="1000" value="53">
+        </div>
+        <div id="nisq-verdict"></div>
+        <div class="callout cyan" style="margin-top:.7rem;padding:.6rem .85rem">
+          <div><h4>Why VQA Exists</h4>
+          <p style="font-size:.8rem">Try 1000 gates at 99.9% fidelity — see the global fidelity collapse? VQE and QAOA (Weeks 5–6) use <em>shallow circuits</em> to stay within the coherence window.</p></div>
+        </div>
+      </div>
+      <div class="gauge-wrap">
+        <canvas id="gauge-cv" width="210" height="175"></canvas>
+        <div class="gauge-label" id="gauge-pct">--</div>
+        <div class="gauge-sub">Global Circuit Fidelity</div>
+      </div>
+    </div>
+  </div>
+
+  <h3 class="mt2">4.3 Fault-Tolerant QC — The Destination</h3>
+  <div class="g2">
+    <div class="panel green">
+      <div style="font-family:var(--mono);font-size:.68rem;color:var(--green);margin-bottom:.4rem">WHAT IS NEEDED</div>
+      <ul style="font-size:.83rem;color:var(--text2)">
+        <li>Logical qubit: encoded across many physical qubits</li>
+        <li>Surface code: 2D grid of physical qubits</li>
+        <li>At 0.1% error: ~1,000–10,000 physical per logical qubit</li>
+        <li>RSA-2048 needs ~4,000 logical qubits → millions of physical</li>
+      </ul>
+    </div>
+    <div class="panel" style="border-color:rgba(245,158,11,.3)">
+      <div style="font-family:var(--mono);font-size:.68rem;color:var(--gold);margin-bottom:.4rem">KEY MILESTONES</div>
+      <ul style="font-size:.83rem;color:var(--text2)">
+        <li>Google (2023): Exponential error suppression in surface code</li>
+        <li>Harvard/QuEra (2023): 48 logical qubit operations</li>
+        <li>Threshold theorem: physical error &lt;1% allows arbitrary suppression</li>
+        <li>IBM Heron (156 qubits) at AQV — India's largest QC</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- CONCLUSION -->
+<section id="conclusion" class="reveal">
+  <div class="sec-tag">§ Conclusion</div>
+  <h2>Key Takeaways</h2>
+  <div class="callout cyan"><div class="ci">1</div><div><h4>No Single Platform Has Won</h4><p>Superconducting leads in scale, trapped ions in fidelity, neutral atoms in programmability. The race is ongoing.</p></div></div>
+  <div class="callout violet"><div class="ci">2</div><div><h4>Physical Error Rates Drive Everything</h4><p>Reducing errors from 0.1% toward 0.01% shrinks logical qubit overhead by orders of magnitude.</p></div></div>
+  <div class="callout gold"><div class="ci">3</div><div><h4>NISQ Algorithms Are the Bridge</h4><p>VQE and QAOA extract value from today's imperfect hardware through short-depth, classical-quantum hybrid loops.</p></div></div>
+  <div class="callout green"><div class="ci">4</div><div><h4>Rajesh's Career Insight</h4><p>Your MuleSoft/API integration background maps directly to <strong>Quantum Integration Architecture</strong> — connecting classical enterprise systems to quantum cloud APIs. Amaravathi Quantum Valley needs this profile urgently.</p></div></div>
+</section>
+
+<!-- 6-WEEK TRACKER -->
+<section id="tracker" class="reveal">
+  <div class="sec-tag">Study Tools · Progress</div>
+  <h2>6-Week WISER Tracker</h2>
+  <p>Check off tasks as you complete them. Write journal entries per week — they are saved in your browser.</p>
+  <div id="tracker-container"></div>
+</section>
+
+<!-- GLOSSARY -->
+<section id="glossary" class="reveal">
+  <div class="sec-tag">Study Tools · Reference</div>
+  <h2>Glossary</h2>
+  <input type="text" id="gsearch" placeholder="Search terms… e.g. T2, NISQ, Bell state, entanglement">
+  <div id="g-list"></div>
+  <div id="g-none" class="g-none hidden">No matching terms found.</div>
+</section>
+
+<!-- ROADMAP -->
+<section id="roadmap" class="reveal">
+  <div class="sec-tag">Study Tools · Timeline</div>
+  <h2>Quantum Computing Roadmap</h2>
+  <div class="timeline" id="tl-container"></div>
+  <div class="callout gold mt">
+    <div class="ci">🏆</div>
+    <div>
+      <h4>Your Personal Milestone</h4>
+      <p>WISER Global Summer School starts June 24, 2026 (Mon &amp; Wed, 7:30–9:30 PM IST). Top 100 Phase 2 performers selected. Scholarship value: USD $250 + $25,000 in-kind + internship opportunities with WISER researchers in USA/Europe + Qubitech Hyderabad.</p>
+    </div>
+  </div>
+</section>
+
+</main>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// ALL CODE runs after DOM is ready (script is last in body,
+// but we also wrap in DOMContentLoaded for absolute safety)
+// ═══════════════════════════════════════════════════════════════
+(function() {
+'use strict';
+
+// ── HELPERS ─────────────────────────────────────────────────────
+function $(id){ return document.getElementById(id); }
+function clamp(v,lo,hi){ return Math.max(lo,Math.min(hi,v)); }
+function rr(ctx,x,y,w,h,r){
+  // Cross-browser rounded rect without ctx.roundRect
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);
+  ctx.lineTo(x+w-r,y);
+  ctx.arcTo(x+w,y,x+w,y+r,r);
+  ctx.lineTo(x+w,y+h-r);
+  ctx.arcTo(x+w,y+h,x+w-r,y+h,r);
+  ctx.lineTo(x+r,y+h);
+  ctx.arcTo(x,y+h,x,y+h-r,r);
+  ctx.lineTo(x,y+r);
+  ctx.arcTo(x,y,x+r,y,r);
+  ctx.closePath();
+}
+
+// ── NAV + SIDEBAR ────────────────────────────────────────────────
+var navLinks = document.querySelectorAll('#sb-nav a[href^="#"]');
+var allSections = Array.from(document.querySelectorAll('section[id]'));
+
+function updateNav(){
+  var cur='';
+  allSections.forEach(function(s){
+    if(window.scrollY+130 >= s.offsetTop) cur=s.id;
+  });
+  navLinks.forEach(function(a){
+    a.classList.toggle('active', a.getAttribute('href')==='#'+cur);
+  });
+}
+window.addEventListener('scroll',updateNav,{passive:true});
+updateNav();
+
+function toggleSidebar(){
+  $('sidebar').classList.toggle('open');
+  $('overlay').classList.toggle('show');
+}
+$('menu-btn').addEventListener('click', toggleSidebar);
+$('overlay').addEventListener('click', toggleSidebar);
+navLinks.forEach(function(a){
+  a.addEventListener('click', function(){
+    if(window.innerWidth<=768) toggleSidebar();
+  });
+});
+
+// ── SCROLL REVEAL ─────────────────────────────────────────────
+var reveals = document.querySelectorAll('.reveal');
+var revObs = new IntersectionObserver(function(entries){
+  entries.forEach(function(e){ if(e.isIntersecting) e.target.classList.add('vis'); });
+},{threshold:0.06});
+reveals.forEach(function(r){ revObs.observe(r); });
+
+// ═══════════════════════════════════════════════════════════════
+// BLOCH SPHERE
+// ═══════════════════════════════════════════════════════════════
+var bCanvas = $('bloch-cv');
+var bCtx = bCanvas.getContext('2d');
+var bTheta = Math.PI/2, bPhi = 0;
+
+function drawBloch(){
+  var W=bCanvas.width, H=bCanvas.height;
+  var cx=W/2, cy=H/2, r=100;
+  bCtx.clearRect(0,0,W,H);
+  bCtx.fillStyle='#04081a'; bCtx.fillRect(0,0,W,H);
+
+  // Sphere outline
+  bCtx.strokeStyle='#1a2a4a'; bCtx.lineWidth=2;
+  bCtx.beginPath(); bCtx.arc(cx,cy,r,0,Math.PI*2); bCtx.stroke();
+
+  // Equator (ellipse drawn manually)
+  bCtx.strokeStyle='rgba(26,42,74,.75)'; bCtx.lineWidth=1;
+  bCtx.beginPath();
+  for(var i=0;i<=360;i+=4){
+    var a=i*Math.PI/180;
+    var ex=cx+r*Math.cos(a), ey=cy+r*0.28*Math.sin(a);
+    i===0 ? bCtx.moveTo(ex,ey) : bCtx.lineTo(ex,ey);
+  }
+  bCtx.stroke();
+
+  // Axis lines
+  bCtx.strokeStyle='rgba(148,163,184,.22)'; bCtx.lineWidth=1;
+  bCtx.beginPath(); bCtx.moveTo(cx-r-8,cy); bCtx.lineTo(cx+r+8,cy); bCtx.stroke();
+  bCtx.beginPath(); bCtx.moveTo(cx,cy-r-14); bCtx.lineTo(cx,cy+r+14); bCtx.stroke();
+
+  // Labels
+  bCtx.font='bold 13px Space Mono,monospace';
+  bCtx.fillStyle='#94a3b8'; bCtx.textAlign='center';
+  bCtx.fillText('|0⟩',cx,cy-r-18);
+  bCtx.fillText('|1⟩',cx,cy+r+28);
+  bCtx.textAlign='left';
+  bCtx.fillText('+x',cx+r+6,cy+4);
+
+  // State vector
+  var x3=Math.sin(bTheta)*Math.cos(bPhi);
+  var z3=Math.cos(bTheta);
+  var y3=Math.sin(bTheta)*Math.sin(bPhi);
+  var px=cx+r*x3, py=cy-r*z3;
+
+  // Shadow line (projection)
+  var sx=cx+r*x3, sy=cy+r*0.28*y3;
+  bCtx.setLineDash([4,4]);
+  bCtx.strokeStyle='rgba(0,229,255,.2)'; bCtx.lineWidth=1;
+  bCtx.beginPath(); bCtx.moveTo(px,py); bCtx.lineTo(sx,sy); bCtx.stroke();
+  bCtx.setLineDash([]);
+
+  // Main arrow
+  bCtx.shadowColor='#00e5ff'; bCtx.shadowBlur=14;
+  bCtx.strokeStyle='#00e5ff'; bCtx.lineWidth=2.5;
+  bCtx.beginPath(); bCtx.moveTo(cx,cy); bCtx.lineTo(px,py); bCtx.stroke();
+
+  // Arrowhead
+  var ang=Math.atan2(py-cy,px-cx);
+  bCtx.fillStyle='#00e5ff';
+  bCtx.beginPath();
+  bCtx.moveTo(px,py);
+  bCtx.lineTo(px-12*Math.cos(ang-.4),py-12*Math.sin(ang-.4));
+  bCtx.lineTo(px-12*Math.cos(ang+.4),py-12*Math.sin(ang+.4));
+  bCtx.closePath(); bCtx.fill();
+  bCtx.shadowBlur=0;
+
+  // State dot
+  bCtx.shadowColor='#00e5ff'; bCtx.shadowBlur=10;
+  bCtx.fillStyle='#00e5ff';
+  bCtx.beginPath(); bCtx.arc(px,py,5,0,Math.PI*2); bCtx.fill();
+  bCtx.shadowBlur=0;
+
+  // Center dot
+  bCtx.fillStyle='#7c3aed';
+  bCtx.beginPath(); bCtx.arc(cx,cy,4,0,Math.PI*2); bCtx.fill();
+}
+
+function updateBloch(){
+  var th=parseFloat($('sl-theta').value);
+  var ph=parseFloat($('sl-phi').value);
+  bTheta=th*Math.PI/180; bPhi=ph*Math.PI/180;
+  $('tv-theta').textContent=th+'°';
+  $('tv-phi').textContent=ph+'°';
+  var a=Math.cos(bTheta/2), b=Math.sin(bTheta/2);
+  var p0=(a*a*100).toFixed(1), p1=(b*b*100).toFixed(1);
+  $('pb0').style.width=p0+'%'; $('pb1').style.width=p1+'%';
+  $('pp0').textContent=p0+'%'; $('pp1').textContent=p1+'%';
+  var ps=ph===0?'':(ph>0?'·e^(i'+ph+'°)':'');
+  $('state-formula').textContent=a.toFixed(2)+'|0⟩ + '+b.toFixed(2)+ps+'|1⟩';
+  drawBloch();
+}
+$('sl-theta').addEventListener('input',updateBloch);
+$('sl-phi').addEventListener('input',updateBloch);
+updateBloch();
+
+// ═══════════════════════════════════════════════════════════════
+// MEASUREMENT COLLAPSE
+// ═══════════════════════════════════════════════════════════════
+var colCv=$('collapse-cv'), cCtx=colCv.getContext('2d');
+var shots=0,zeros=0,ones=0;
+
+function drawSuperposition(){
+  var W=colCv.width,H=colCv.height;
+  cCtx.clearRect(0,0,W,H);
+  cCtx.fillStyle='#04081a'; cCtx.fillRect(0,0,W,H);
+  [[0,'#00e5ff'],[Math.PI,'#7c3aed']].forEach(function(p){
+    var off=p[0], col=p[1];
+    cCtx.strokeStyle=col; cCtx.lineWidth=2.5;
+    cCtx.shadowColor=col; cCtx.shadowBlur=10;
+    cCtx.beginPath();
+    for(var x=18;x<=W-18;x++){
+      var t=(x-18)/(W-36)*4*Math.PI;
+      var y=H/2+(off===0?-18:18)+18*Math.sin(t+off);
+      x===18?cCtx.moveTo(x,y):cCtx.lineTo(x,y);
+    }
+    cCtx.stroke(); cCtx.shadowBlur=0;
+  });
+  cCtx.fillStyle='rgba(0,229,255,.75)';
+  cCtx.font='bold 12px Space Mono,monospace'; cCtx.textAlign='left';
+  cCtx.fillText('|ψ⟩ = (|0⟩ + |1⟩)/√2',16,16);
+  cCtx.fillStyle='rgba(148,163,184,.5)';
+  cCtx.font='11px DM Sans,sans-serif';
+  cCtx.fillText('Superposition — simultaneously |0⟩ and |1⟩',16,H-10);
+  cCtx.textAlign='left';
+}
+
+function drawCollapsed(res){
+  var W=colCv.width,H=colCv.height;
+  cCtx.clearRect(0,0,W,H);
+  cCtx.fillStyle='#04081a'; cCtx.fillRect(0,0,W,H);
+  var col=res===0?'#00e5ff':'#a855f7';
+  cCtx.shadowColor=col; cCtx.shadowBlur=30;
+  cCtx.fillStyle=col;
+  cCtx.font='bold 52px Space Mono,monospace'; cCtx.textAlign='center';
+  cCtx.fillText('|'+res+'⟩',W/2,H/2+18);
+  cCtx.shadowBlur=0;
+  cCtx.fillStyle='rgba(148,163,184,.65)';
+  cCtx.font='12px DM Sans,sans-serif';
+  cCtx.fillText('Collapsed — definite state |'+res+'⟩',W/2,H-10);
+  cCtx.textAlign='left';
+}
+
+function doMeasure(){
+  shots++;
+  var r=Math.random()<.5?0:1;
+  r===0?zeros++:ones++;
+  drawCollapsed(r);
+  $('collapse-result').textContent='Measured: |'+r+'⟩';
+  $('collapse-result').style.color=r===0?'#00e5ff':'#a855f7';
+  $('shot-count').textContent='Shots: '+shots+' · |0⟩: '+zeros+' ('+Math.round(zeros/shots*100)+'%) · |1⟩: '+ones+' ('+Math.round(ones/shots*100)+'%)';
+}
+function doResetCol(){
+  shots=0;zeros=0;ones=0;
+  drawSuperposition();
+  $('collapse-result').textContent='';
+  $('shot-count').textContent='Shots: 0 · |0⟩: 0 · |1⟩: 0';
+}
+$('btn-measure').addEventListener('click',doMeasure);
+$('btn-reset-col').addEventListener('click',doResetCol);
+drawSuperposition();
+
+// ═══════════════════════════════════════════════════════════════
+// BELL STATE CIRCUIT BUILDER
+// ═══════════════════════════════════════════════════════════════
+var circCv=$('circuit-cv'), cir=circCv.getContext('2d');
+var gates=[];
+
+var bellStates={
+  '':         'Initial state: |00⟩',
+  'H':        'After H on q₀: (|00⟩ + |10⟩)/√2',
+  'H,CX':     '⚡ Bell state |Φ+⟩ = (|00⟩ + |11⟩)/√2  — qubits are entangled!',
+  'H,CX,M':   'Measured: collapses to |00⟩ or |11⟩ with equal probability (50/50)',
+};
+
+function drawCircuit(){
+  var W=circCv.width,H=circCv.height;
+  cir.clearRect(0,0,W,H);
+  cir.fillStyle='#04081a'; cir.fillRect(0,0,W,H);
+
+  var ly=[42,90], sx=68;
+  // Wire labels
+  cir.fillStyle='#94a3b8'; cir.font='bold 13px Space Mono,monospace'; cir.textAlign='right';
+  cir.fillText('q₀',sx-8,ly[0]+5);
+  cir.fillText('q₁',sx-8,ly[1]+5);
+  cir.textAlign='left';
+
+  // Init kets
+  ly.forEach(function(y){
+    cir.strokeStyle='#1a2a4a'; cir.lineWidth=1;
+    rr(cir,sx-28,y-14,30,20,3); cir.strokeStyle='#243558'; cir.fillStyle='#0d1635'; cir.fill(); cir.stroke();
+    cir.fillStyle='#00e5ff'; cir.font='11px Space Mono,monospace'; cir.textAlign='center';
+    cir.fillText('|0⟩',sx-13,y+4);
+    cir.textAlign='left';
+  });
+
+  // Wire lines
+  var endX=sx+Math.max(gates.length,1)*88+30;
+  endX=Math.min(endX,W-15);
+  ly.forEach(function(y){
+    cir.strokeStyle='#1a2a4a'; cir.lineWidth=2;
+    cir.beginPath(); cir.moveTo(sx,y); cir.lineTo(endX,y); cir.stroke();
+  });
+
+  gates.forEach(function(g,i){
+    var gx=sx+10+i*88;
+    if(g==='H'){
+      // H gate box
+      cir.fillStyle='rgba(124,79,0,.3)'; cir.strokeStyle='#f59e0b'; cir.lineWidth=2;
+      cir.shadowColor='#f59e0b'; cir.shadowBlur=8;
+      rr(cir,gx,ly[0]-16,36,30,5); cir.fill(); cir.stroke();
+      cir.shadowBlur=0;
+      cir.fillStyle='#f59e0b'; cir.font='bold 15px Space Mono,monospace'; cir.textAlign='center';
+      cir.fillText('H',gx+18,ly[0]+6);
+      cir.textAlign='left';
+    } else if(g==='CX'){
+      // Control dot
+      cir.fillStyle='#a855f7'; cir.shadowColor='#a855f7'; cir.shadowBlur=8;
+      cir.beginPath(); cir.arc(gx+18,ly[0],9,0,Math.PI*2); cir.fill();
+      cir.shadowBlur=0;
+      // Connector line
+      cir.strokeStyle='#a855f7'; cir.lineWidth=2;
+      cir.beginPath(); cir.moveTo(gx+18,ly[0]+9); cir.lineTo(gx+18,ly[1]-18); cir.stroke();
+      // Target (⊕)
+      cir.shadowColor='#a855f7'; cir.shadowBlur=6;
+      cir.beginPath(); cir.arc(gx+18,ly[1],18,0,Math.PI*2); cir.stroke();
+      cir.beginPath(); cir.moveTo(gx+18-18,ly[1]); cir.lineTo(gx+18+18,ly[1]); cir.stroke();
+      cir.beginPath(); cir.moveTo(gx+18,ly[1]-18); cir.lineTo(gx+18,ly[1]+18); cir.stroke();
+      cir.shadowBlur=0;
+    } else if(g==='M'){
+      ly.forEach(function(y){
+        cir.fillStyle='rgba(0,60,35,.4)'; cir.strokeStyle='#10b981'; cir.lineWidth=2;
+        cir.shadowColor='#10b981'; cir.shadowBlur=6;
+        rr(cir,gx,y-16,36,30,5); cir.fill(); cir.stroke();
+        cir.shadowBlur=0;
+        // Meter arc
+        cir.strokeStyle='#10b981'; cir.lineWidth=1.8;
+        cir.beginPath(); cir.arc(gx+18,y+4,10,Math.PI,0); cir.stroke();
+        cir.beginPath(); cir.moveTo(gx+18,y+4); cir.lineTo(gx+28,y-6); cir.stroke();
+      });
+    }
+  });
+
+  var key=gates.join(',');
+  var stateText=bellStates[key]||(gates.length?'Intermediate state':'Initial state: |00⟩');
+  $('bell-out').textContent=stateText;
+  $('bell-out').style.color=key==='H,CX'?'#10b981':'#00e5ff';
+}
+
+function addGate(g){
+  if(gates.includes('M')) return;
+  if(g==='H' && gates.includes('H')) return;
+  if(g==='CX' && !gates.includes('H')){
+    $('bell-out').textContent='⚠ Add the H gate first to create superposition before CNOT!';
+    $('bell-out').style.color='#f59e0b'; return;
+  }
+  gates.push(g); drawCircuit();
+}
+function resetCircuit(){ gates=[]; drawCircuit(); }
+$('gbtn-h').addEventListener('click',function(){addGate('H');});
+$('gbtn-cx').addEventListener('click',function(){addGate('CX');});
+$('gbtn-m').addEventListener('click',function(){addGate('M');});
+$('gbtn-r').addEventListener('click',resetCircuit);
+drawCircuit();
+
+// ═══════════════════════════════════════════════════════════════
+// COHERENCE CALCULATOR
+// ═══════════════════════════════════════════════════════════════
+var cohCv=$('coh-cv'), cohCtx=cohCv.getContext('2d');
+
+function drawCohChart(t1,t2){
+  var W=cohCv.width,H=cohCv.height;
+  cohCtx.clearRect(0,0,W,H);
+  cohCtx.fillStyle='#04081a'; cohCtx.fillRect(0,0,W,H);
+
+  var pl=38,pr=12,pt=18,pb=30;
+  var gw=W-pl-pr,gh=H-pt-pb;
+
+  // Grid
+  cohCtx.strokeStyle='rgba(26,42,74,.8)'; cohCtx.lineWidth=.8;
+  for(var i=0;i<=4;i++){
+    var gy=pt+gh*i/4;
+    cohCtx.beginPath(); cohCtx.moveTo(pl,gy); cohCtx.lineTo(pl+gw,gy); cohCtx.stroke();
+  }
+  // Axes
+  cohCtx.strokeStyle='#475569'; cohCtx.lineWidth=1.5;
+  cohCtx.beginPath(); cohCtx.moveTo(pl,pt); cohCtx.lineTo(pl,pt+gh); cohCtx.stroke();
+  cohCtx.beginPath(); cohCtx.moveTo(pl,pt+gh); cohCtx.lineTo(pl+gw,pt+gh); cohCtx.stroke();
+
+  // Y labels
+  cohCtx.fillStyle='#475569'; cohCtx.font='9px Space Mono,monospace'; cohCtx.textAlign='right';
+  cohCtx.fillText('1.0',pl-3,pt+4);
+  cohCtx.fillText('0',pl-3,pt+gh+3);
+  cohCtx.textAlign='center';
+  cohCtx.fillText('Time →',pl+gw/2,H-2);
+  cohCtx.textAlign='left';
+
+  var maxT=Math.max(t1,t2)*2.2;
+
+  // T1 curve (orange)
+  cohCtx.strokeStyle='#f97316'; cohCtx.lineWidth=2.5;
+  cohCtx.shadowColor='#f97316'; cohCtx.shadowBlur=5;
+  cohCtx.beginPath();
+  for(var px=0;px<=gw;px++){
+    var t=px/gw*maxT;
+    var v=Math.exp(-t/t1);
+    var yp=pt+gh*(1-v);
+    px===0?cohCtx.moveTo(pl+px,yp):cohCtx.lineTo(pl+px,yp);
+  }
+  cohCtx.stroke(); cohCtx.shadowBlur=0;
+
+  // T2 oscillating decay (cyan)
+  cohCtx.strokeStyle='#00e5ff'; cohCtx.lineWidth=2;
+  cohCtx.shadowColor='#00e5ff'; cohCtx.shadowBlur=5;
+  cohCtx.beginPath();
+  for(var px=0;px<=gw;px++){
+    var t=px/gw*maxT;
+    var env=Math.exp(-t/t2);
+    var osc=0.38*Math.cos(10*Math.PI*t/maxT);
+    var v=clamp(0.5+0.5*env*(1+osc),0,1);
+    var yp=pt+gh*(1-v);
+    px===0?cohCtx.moveTo(pl+px,yp):cohCtx.lineTo(pl+px,yp);
+  }
+  cohCtx.stroke(); cohCtx.shadowBlur=0;
+
+  // Legend
+  cohCtx.fillStyle='#f97316'; cohCtx.fillRect(pl+3,pt+3,12,3);
+  cohCtx.fillStyle='#94a3b8'; cohCtx.font='9px Space Mono,monospace';
+  cohCtx.fillText('T₁',pl+18,pt+8);
+  cohCtx.fillStyle='#00e5ff'; cohCtx.fillRect(pl+32,pt+3,12,3);
+  cohCtx.fillStyle='#94a3b8';
+  cohCtx.fillText('T₂',pl+47,pt+8);
+}
+
+function updateCoherence(){
+  var t1=parseFloat($('sl-t1').value);
+  var rawT2=parseFloat($('sl-t2').value);
+  var t2=Math.min(rawT2,2*t1);
+  var gt=parseFloat($('sl-gt').value);
+  $('tv-t1').textContent=t1+' μs';
+  $('tv-t2').textContent=rawT2+' μs';
+  $('tv-gt').textContent=gt+' ns';
+  var budget=Math.floor(t2*1000/gt);
+  $('gate-budget').textContent=budget.toLocaleString();
+  if(rawT2>2*t1){
+    $('t2-check').textContent='✗'; $('t2-check').style.color='#ef4444';
+    $('t2-check-lbl').textContent='T₂ > 2T₁!';
+  } else {
+    $('t2-check').textContent='✓'; $('t2-check').style.color='#10b981';
+    $('t2-check-lbl').textContent='T₂ ≤ 2T₁';
+  }
+  drawCohChart(t1,t2);
+}
+$('sl-t1').addEventListener('input',updateCoherence);
+$('sl-t2').addEventListener('input',updateCoherence);
+$('sl-gt').addEventListener('input',updateCoherence);
+updateCoherence();
+
+// ═══════════════════════════════════════════════════════════════
+// PLATFORM RADAR CHART
+// ═══════════════════════════════════════════════════════════════
+var radCv=$('radar-cv'), rCtx=radCv.getContext('2d');
+var platforms=[
+  {name:'Superconducting',color:'#00e5ff',scores:[4,3,5,4,3],on:true},
+  {name:'Trapped Ion',    color:'#a855f7',scores:[4,5,4,5,2],on:true},
+  {name:'Neutral Atom',  color:'#10b981',scores:[3,4,4,4,4],on:false},
+  {name:'Photonic',      color:'#f59e0b',scores:[3,2,3,3,2],on:false},
+  {name:'Semiconductor', color:'#f97316',scores:[3,3,4,3,5],on:false},
+];
+var radLabels=['Init','Coherence','Uni. Gates','Readout','Scalable'];
+
+function drawRadar(){
+  var W=radCv.width,H=radCv.height;
+  rCtx.clearRect(0,0,W,H);
+  rCtx.fillStyle='#04081a'; rCtx.fillRect(0,0,W,H);
+  var cx=W/2,cy=H/2,maxR=Math.min(cx,cy)-38,n=5;
+
+  // Grid rings
+  for(var ring=1;ring<=5;ring++){
+    rCtx.strokeStyle='rgba(26,42,74,'+(ring===5?.85:.4)+')';
+    rCtx.lineWidth=ring===5?1.5:.7;
+    rCtx.beginPath();
+    for(var i=0;i<=n;i++){
+      var a=(i/n)*Math.PI*2-Math.PI/2;
+      var rr2=(ring/5)*maxR;
+      i===0?rCtx.moveTo(cx+rr2*Math.cos(a),cy+rr2*Math.sin(a)):rCtx.lineTo(cx+rr2*Math.cos(a),cy+rr2*Math.sin(a));
+    }
+    rCtx.closePath(); rCtx.stroke();
+  }
+
+  // Spokes + labels
+  for(var i=0;i<n;i++){
+    var a=(i/n)*Math.PI*2-Math.PI/2;
+    rCtx.strokeStyle='rgba(71,85,105,.55)'; rCtx.lineWidth=1;
+    rCtx.beginPath(); rCtx.moveTo(cx,cy); rCtx.lineTo(cx+maxR*Math.cos(a),cy+maxR*Math.sin(a)); rCtx.stroke();
+    rCtx.fillStyle='#94a3b8'; rCtx.font='10px Space Mono,monospace'; rCtx.textAlign='center';
+    rCtx.fillText(radLabels[i],cx+(maxR+22)*Math.cos(a),cy+(maxR+22)*Math.sin(a)+4);
+  }
+  rCtx.textAlign='left';
+
+  // Platform polygons
+  platforms.filter(function(p){return p.on;}).forEach(function(p){
+    rCtx.beginPath();
+    p.scores.forEach(function(s,i){
+      var a=(i/n)*Math.PI*2-Math.PI/2;
+      var rv=(s/5)*maxR;
+      i===0?rCtx.moveTo(cx+rv*Math.cos(a),cy+rv*Math.sin(a)):rCtx.lineTo(cx+rv*Math.cos(a),cy+rv*Math.sin(a));
+    });
+    rCtx.closePath();
+    rCtx.fillStyle=p.color+'25';
+    rCtx.strokeStyle=p.color; rCtx.lineWidth=2;
+    rCtx.shadowColor=p.color; rCtx.shadowBlur=8;
+    rCtx.fill(); rCtx.stroke();
+    rCtx.shadowBlur=0;
+  });
+}
+
+var platBtnsEl=$('plat-btns');
+platforms.forEach(function(p){
+  var btn=document.createElement('div');
+  btn.className='pbtn'+(p.on?' on':'');
+  btn.innerHTML='<span class="pdot" style="background:'+p.color+'"></span>'+p.name;
+  btn.addEventListener('click',function(){
+    p.on=!p.on; btn.classList.toggle('on',p.on); drawRadar();
+  });
+  platBtnsEl.appendChild(btn);
+});
+drawRadar();
+
+// ═══════════════════════════════════════════════════════════════
+// NISQ FIDELITY GAUGE
+// ═══════════════════════════════════════════════════════════════
+var gaugCv=$('gauge-cv'), gCtx=gaugCv.getContext('2d');
+
+function drawGauge(pct){
+  var W=gaugCv.width,H=gaugCv.height;
+  gCtx.clearRect(0,0,W,H);
+  gCtx.fillStyle='#04081a'; gCtx.fillRect(0,0,W,H);
+  var cx=W/2,cy=H-22,r=75;
+  var sA=Math.PI,eA=0;
+
+  // Track
+  gCtx.strokeStyle='#1a2a4a'; gCtx.lineWidth=14; gCtx.lineCap='round';
+  gCtx.beginPath(); gCtx.arc(cx,cy,r,sA,eA); gCtx.stroke();
+
+  // Fill
+  var col=pct>50?'#10b981':pct>10?'#f59e0b':'#ef4444';
+  var fA=sA+(eA-sA)*clamp(pct,0,100)/100;
+  gCtx.strokeStyle=col; gCtx.lineWidth=14;
+  gCtx.shadowColor=col; gCtx.shadowBlur=16;
+  gCtx.beginPath(); gCtx.arc(cx,cy,r,sA,fA); gCtx.stroke();
+  gCtx.shadowBlur=0;
+
+  // Needle
+  var nA=sA+(eA-sA)*clamp(pct,0,100)/100;
+  gCtx.strokeStyle='#fff'; gCtx.lineWidth=2.5; gCtx.lineCap='round';
+  gCtx.beginPath();
+  gCtx.moveTo(cx,cy);
+  gCtx.lineTo(cx+(r-16)*Math.cos(nA),cy+(r-16)*Math.sin(nA));
+  gCtx.stroke();
+  gCtx.fillStyle='#fff';
+  gCtx.beginPath(); gCtx.arc(cx,cy,5,0,Math.PI*2); gCtx.fill();
+
+  // Tick labels
+  gCtx.fillStyle='#475569'; gCtx.font='9px Space Mono,monospace'; gCtx.textAlign='center';
+  gCtx.fillText('0%',cx-r-6,cy+14);
+  gCtx.fillText('100%',cx+r+6,cy+14);
+}
+
+function updateNISQ(){
+  var fid=parseFloat($('sl-fid').value)/10000;
+  var ng=parseFloat($('sl-gates').value);
+  var nq=parseFloat($('sl-qubits').value);
+  $('tv-fid').textContent=(fid*100).toFixed(2)+'%';
+  $('tv-gates').textContent=Math.round(ng);
+  $('tv-qubits').textContent=Math.round(nq);
+  var gf=Math.pow(fid,ng)*100;
+  var disp=gf>0.01?gf.toFixed(2)+'%':'<0.01%';
+  $('gauge-pct').textContent=disp;
+  drawGauge(gf);
+  var v=$('nisq-verdict');
+  if(gf>50){
+    v.style.cssText='background:rgba(16,185,129,.09);color:#10b981;border:1px solid rgba(16,185,129,.28)';
+    v.textContent='✓ High fidelity — circuit likely to succeed';
+  } else if(gf>5){
+    v.style.cssText='background:rgba(245,158,11,.07);color:#f59e0b;border:1px solid rgba(245,158,11,.28)';
+    v.textContent='⚠ Moderate — noisy but usable with error mitigation';
+  } else {
+    v.style.cssText='background:rgba(239,68,68,.07);color:#ef4444;border:1px solid rgba(239,68,68,.28)';
+    v.textContent='✗ Too deep for NISQ. Reduce gates or use shallower ansatz.';
+  }
+}
+$('sl-fid').addEventListener('input',updateNISQ);
+$('sl-gates').addEventListener('input',updateNISQ);
+$('sl-qubits').addEventListener('input',updateNISQ);
+updateNISQ();
+
+// ═══════════════════════════════════════════════════════════════
+// 6-WEEK TRACKER + JOURNAL
+// ═══════════════════════════════════════════════════════════════
+var weekData=[
+  {num:'Week 1',date:'Mar 23–27',status:'active',title:'Quantum Fundamentals Refresher',
+   tasks:['Attend live: Dr. Akash Malemath (WISER)','Attend live: Dr. Ritajit Majumdar (IBM)','Attend live: Dr. Bennett (US Naval Nuclear Lab)','Read playbook Sections 1, 2.1, 2.2, 2.4','Close Phase 1 gaps — superdense coding & teleportation','Journal: 1 concept + 1 open question per day','Post one question in live Q&A'],
+   prompt:'How does entanglement enable quantum teleportation without violating the no-cloning theorem?'},
+  {num:'Week 2',date:'Mar 30 – Apr 3',status:'upcoming',title:'Your First Quantum Problem',
+   tasks:['Attend live: Dr. Stefan Seeper (IQM)','Attend live: Dr. Richa Goel & Ananarayanan (IBM)','Install Qiskit: pip install qiskit qiskit-aer jupyter','Create IBM Quantum account at quantum.ibm.com','Rebuild Bell state circuit from scratch in Jupyter','Build GHZ state for 3, 4, and 5 qubits','Submit first Jupyter notebook'],
+   prompt:'What CNOT operations physically implement entanglement in IBM superconducting hardware?'},
+  {num:'Week 3',date:'Apr 6–10',status:'upcoming',title:'Real Quantum Hardware & Noise',
+   tasks:['Attend live: Dr. Ricky Young (qBraid)','Attend live: Dr. Harshit Gupta (qBraid)','Create qBraid account at qbraid.com','Run first circuit on real quantum hardware via qBraid','Record actual T₁ and T₂ from hardware calibration','Add Aer depolarising noise model to Bell circuit','Compare statevector vs noisy simulator results'],
+   prompt:'How do T₁ and T₂ values from qBraid real hardware compare to the coherence calculator above?'},
+  {num:'Week 4',date:'Apr 13–17',status:'upcoming',title:'Basic Quantum Algorithms',
+   tasks:['Attend live: Dr. Jeremiah Wright (WISER)','Attend live: Dr. Erica Sturm (WISER)','Attend live: Dr. Haltmann (Fraunhofer ITWM)','Implement QFT from scratch (not from textbook)','Implement Grover\'s for 2-qubit search manually','Solve 2 Grover practice problems','Polish Grover notebook — comment every cell'],
+   prompt:'Grover\'s needs entangling operations. Which of the three entanglement approaches does IBM hardware use?'},
+  {num:'Week 5',date:'Apr 20–24',status:'upcoming',title:'Variational Quantum Algorithms',
+   tasks:['Attend live sessions: Fraunhofer ITWM','Attend live: Dr. Bharadwaj Mummaneni (Fraunhofer IAO)','Code VQE from scratch (H₂ molecule ground state)','Compare COBYLA vs SPSA — record convergence curves','Experiment with different ansatz designs','Understand why VQA targets NISQ constraints','Notebook with optimiser comparison analysis'],
+   prompt:'Why is VQE designed for NISQ? What error-rate constraint drives its shallow circuit design?'},
+  {num:'Week 6',date:'Apr 27 – May 1',status:'upcoming',title:'VQA with Xanadu / PennyLane',
+   tasks:['Attend live: Dr. Catalina Albornoz (Xanadu)','Install PennyLane: pip install pennylane','Set up PennyLane default.qubit device','Implement QAOA on Max-Cut problem instance','Implement Hadamard transform and amplitude encoding','Polish all 6 notebooks and submit','Write 500-word reflection on 6-week journey'],
+   prompt:'How does PennyLane\'s photonic backend differ from Qiskit\'s superconducting backend in qubit-type terms?'},
+];
+
+// Load saved state
+var savedTasks=JSON.parse(localStorage.getItem('wiser-tasks')||'{}');
+var savedJournal=JSON.parse(localStorage.getItem('wiser-journal')||'{}');
+
+var totalTasks=0,doneTasks=0;
+weekData.forEach(function(w){ totalTasks+=w.tasks.length; });
+
+function saveJournal(){ localStorage.setItem('wiser-journal',JSON.stringify(savedJournal)); }
+function saveTasks(){
+  localStorage.setItem('wiser-tasks',JSON.stringify(savedTasks));
+  doneTasks=Object.values(savedTasks).filter(Boolean).length;
+  $('prog-fill').style.width=Math.round(doneTasks/totalTasks*100)+'%';
+}
+
+var trackerContainer=$('tracker-container');
+weekData.forEach(function(week,wi){
+  var card=document.createElement('div');
+  card.className='week-card '+week.status;
+
+  var tasksHTML=week.tasks.map(function(t,ti){
+    var id='t-'+wi+'-'+ti;
+    var checked=savedTasks[id];
+    if(checked) doneTasks++;
+    return '<li id="li-'+id+'" class="'+(checked?'checked':'')+'">'
+      +'<span class="chk">'+(checked?'✓':'')+'</span>'+t+'</li>';
+  }).join('');
+
+  var journalEntries=savedJournal[wi]||[];
+  var entriesHTML=journalEntries.map(function(e,ei){
+    return '<div class="j-entry">'
+      +'<div class="j-entry-header">'
+      +'<span class="j-entry-date">'+e.date+'</span>'
+      +'<button class="j-entry-del" data-wi="'+wi+'" data-ei="'+ei+'">✕ delete</button>'
+      +'</div>'
+      +'<div class="j-entry-text">'+e.text.replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</div>'
+      +'</div>';
+  }).join('');
+
+  card.innerHTML=
+    '<div class="wk-header">'
+      +'<span class="wk-num">'+week.num+'</span>'
+      +'<span class="wk-title">'+week.title+'</span>'
+      +'<span class="wk-date">'+week.date+'</span>'
+    +'</div>'
+    +'<ul class="checklist">'+tasksHTML+'</ul>'
+    +'<div class="journal-section">'
+      +'<div class="journal-header"><h5>📓 Quantum Journal</h5></div>'
+      +'<div class="journal-prompt">'+week.prompt+'</div>'
+      +'<div class="journal-entries" id="je-'+wi+'">'+entriesHTML+'</div>'
+      +'<div class="journal-input-wrap">'
+        +'<textarea class="j-input" id="ji-'+wi+'" placeholder="Write your journal entry here… What did you learn? What clicked? What is still unclear?"></textarea>'
+        +'<button class="btn violet j-save" data-wi="'+wi+'">💾 Save Entry</button>'
+      +'</div>'
+    +'</div>';
+
+  trackerContainer.appendChild(card);
+
+  // Checklist click handlers
+  week.tasks.forEach(function(_,ti){
+    var id='t-'+wi+'-'+ti;
+    var li=document.getElementById('li-'+id);
+    li.addEventListener('click',function(){
+      var now=!li.classList.contains('checked');
+      li.classList.toggle('checked',now);
+      li.querySelector('.chk').textContent=now?'✓':'';
+      savedTasks[id]=now;
+      saveTasks();
+    });
+  });
+});
+
+// Journal save + delete (event delegation on container)
+trackerContainer.addEventListener('click',function(e){
+  // Save entry
+  if(e.target.classList.contains('j-save')){
+    var wi=parseInt(e.target.getAttribute('data-wi'));
+    var ta=document.getElementById('ji-'+wi);
+    var text=ta.value.trim();
+    if(!text) return;
+    if(!savedJournal[wi]) savedJournal[wi]=[];
+    var now=new Date();
+    var dateStr=now.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+    savedJournal[wi].push({date:dateStr,text:text});
+    saveJournal();
+    ta.value='';
+    rebuildEntries(wi);
+  }
+  // Delete entry
+  if(e.target.classList.contains('j-entry-del')){
+    var wi=parseInt(e.target.getAttribute('data-wi'));
+    var ei=parseInt(e.target.getAttribute('data-ei'));
+    savedJournal[wi].splice(ei,1);
+    saveJournal();
+    rebuildEntries(wi);
+  }
+});
+
+function rebuildEntries(wi){
+  var entries=savedJournal[wi]||[];
+  var el=document.getElementById('je-'+wi);
+  el.innerHTML=entries.map(function(e,ei){
+    return '<div class="j-entry">'
+      +'<div class="j-entry-header">'
+      +'<span class="j-entry-date">'+e.date+'</span>'
+      +'<button class="j-entry-del" data-wi="'+wi+'" data-ei="'+ei+'">✕ delete</button>'
+      +'</div>'
+      +'<div class="j-entry-text">'+e.text.replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</div>'
+      +'</div>';
+  }).join('');
+}
+
+// Init progress bar
+saveTasks();
+
+// ═══════════════════════════════════════════════════════════════
+// GLOSSARY
+// ═══════════════════════════════════════════════════════════════
+var glossaryData=[
+  {term:'Qubit',def:'<strong>Quantum bit</strong> — two-level quantum system used to store and process quantum information. Unlike classical bits, can exist in superposition of |0⟩ and |1⟩ simultaneously.'},
+  {term:'Superposition',def:'Quantum state that is a linear combination of basis states: <strong>|ψ⟩ = α|0⟩ + β|1⟩</strong> where |α|²+|β|²=1. Upon measurement, collapses to one definite outcome.'},
+  {term:'Entanglement',def:'<strong>Multi-particle quantum state</strong> that cannot be written as a product of individual particle states. Measuring one qubit instantly determines the state of its entangled partner regardless of distance.'},
+  {term:'Bell state',def:'One of four <strong>maximally entangled two-qubit states</strong> (|Φ±⟩, |Ψ±⟩). Building blocks of quantum teleportation, superdense coding, and quantum cryptography.'},
+  {term:'GHZ state',def:'Greenberger-Horne-Zeilinger state — <strong>generalised Bell state for n&gt;2 qubits</strong>: (|00…0⟩+|11…1⟩)/√2. Also called Schrödinger cat state.'},
+  {term:'T₁',def:'<strong>Relaxation time</strong> — time for |1⟩ to decay to |0⟩. Classical lifetime of the qubit excited state. Sets an upper limit: T₂ ≤ 2T₁.'},
+  {term:'T₂',def:'<strong>Dephasing time</strong> — time for phase coherence between |0⟩ and |1⟩ to decay. Quantum lifetime. Your circuit must complete within T₂ or errors compound.'},
+  {term:'Wavefunction collapse',def:'Irreversible projection of a superposition state to a definite eigenstate upon measurement. Probability given by |amplitude|². Foundation of the no-cloning theorem.'},
+  {term:'Bloch sphere',def:'<strong>Geometric representation</strong> of a single-qubit state. Pure states map to the surface (radius=1). Poles = |0⟩ and |1⟩. Equator = equal superpositions. Phase encoded as angle φ.'},
+  {term:'DiVincenzo criteria',def:'Five requirements for a viable qubit: (1) initialise, (2) long coherence, (3) universal gates, (4) readout, (5) scalability. Proposed by D.P. DiVincenzo in 1998–2000.'},
+  {term:'Hadamard gate',def:'Single-qubit gate that creates equal superposition: <strong>H|0⟩ = (|0⟩+|1⟩)/√2</strong>. Matrix: [[1,1],[1,-1]]/√2. First gate in most quantum algorithms.'},
+  {term:'CNOT gate',def:'<strong>Controlled-NOT</strong> — two-qubit gate that flips target qubit if and only if control qubit is |1⟩. Combined with single-qubit gates, forms a universal gate set.'},
+  {term:'Rabi oscillation',def:'Coherent oscillation between |0⟩ and |1⟩ driven by a resonant electromagnetic field. Pulse duration, intensity, and phase control → arbitrary single-qubit rotation.'},
+  {term:'Rydberg blockade',def:'Strong dipole-dipole interaction between highly excited Rydberg atoms that prevents simultaneous excitation of neighbouring atoms. Used for <strong>entanglement in neutral atom qubits</strong>.'},
+  {term:'Quantum bus',def:'Auxiliary quantum system (phonon mode, microwave resonator) that mediates entangling interactions between qubits while keeping them otherwise isolated from each other.'},
+  {term:'NISQ',def:'<strong>Noisy Intermediate-Scale Quantum</strong> — coined by J. Preskill (2018). Devices with 50–1000+ qubits and no error correction. The current state of the art.'},
+  {term:'Logical qubit',def:'Qubit encoded across <strong>many physical qubits</strong> using quantum error correction. Protects against errors without directly measuring quantum state. Goal: one logical qubit from ~1,000 physical qubits.'},
+  {term:'Surface code',def:'Leading quantum error correction code using a <strong>2D grid of physical qubits</strong>. Topological error protection. Physical error threshold ~1%.'},
+  {term:'FTQC',def:'<strong>Fault-Tolerant Quantum Computing</strong> — quantum computing with full error correction. Requires millions of physical qubits. Long-term goal of the field.'},
+  {term:'VQE',def:'<strong>Variational Quantum Eigensolver</strong> — hybrid classical-quantum algorithm. Uses parameterised quantum circuit (ansatz) + classical optimiser to find ground state energy. WISER Week 5.'},
+  {term:'QAOA',def:'<strong>Quantum Approximate Optimisation Algorithm</strong> — variational algorithm for combinatorial optimisation (Max-Cut, scheduling). Uses alternating cost/mixer unitaries. WISER Week 6.'},
+  {term:'Ansatz',def:'Parameterised trial quantum state used in variational algorithms (VQE, QAOA). Classical optimiser tunes parameters to minimise cost function. Circuit depth determines NISQ viability.'},
+  {term:'QFT',def:'<strong>Quantum Fourier Transform</strong> — quantum analogue of FFT, uses O(n²) gates vs classical O(n·2ⁿ). Core subroutine of Shor\'s algorithm. WISER Week 4.'},
+  {term:'Decoherence',def:'Loss of quantum behaviour (superposition, entanglement) due to environmental interaction. Main enemy of quantum computing. Characterised by T₁ and T₂ timescales.'},
+  {term:'No-cloning theorem',def:'Quantum mechanical theorem: <strong>an unknown quantum state cannot be copied</strong>. Consequence of linearity of quantum mechanics. Why QEC uses entanglement, not copying.'},
+  {term:'Leakage error',def:'In two-level subset systems, quantum state propagating outside the qubit subspace. Cannot be corrected by standard QEC. Mitigated by erasure conversion techniques.'},
+  {term:'Aer',def:'IBM\'s quantum noise <strong>simulator for Qiskit</strong>. Models real hardware noise including depolarising, thermal relaxation, and readout errors. Used in WISER Week 3.'},
+  {term:'qBraid',def:'Cloud quantum computing platform providing access to multiple real quantum hardware backends. Used in WISER Week 3 for real hardware execution and noise characterisation.'},
+  {term:'PennyLane',def:'<strong>Xanadu\'s quantum ML framework</strong>. Differentiable quantum programming. Supports photonic, superconducting, and trapped-ion backends. Used in WISER Week 6.'},
+  {term:'AQV',def:'<strong>Amaravathi Quantum Valley</strong> — Andhra Pradesh government initiative. IBM + TCS deploying 156-qubit Heron processor there. India\'s first quantum ecosystem.'},
+  {term:'Transmon',def:'A type of superconducting qubit used by IBM and Google. Consists of a Josephson junction shunted by a large capacitor to reduce charge noise. Operates at ~15 milli-Kelvin.'},
+  {term:'Fidelity',def:'Measure of how close a quantum operation is to its ideal version. Gate fidelity >99.9% is state-of-the-art. <strong>Global circuit fidelity = (gate fidelity)^(number of gates)</strong> — falls exponentially.'},
+];
+
+var gList=$('g-list'), gNone=$('g-none');
+glossaryData.forEach(function(item){
+  var div=document.createElement('div');
+  div.className='g-item';
+  div.setAttribute('data-search',(item.term+' '+item.def).toLowerCase().replace(/<[^>]+>/g,''));
+  div.innerHTML='<div class="g-term">'+item.term+'</div><div class="g-def">'+item.def+'</div>';
+  gList.appendChild(div);
+});
+
+function doGlossarySearch(){
+  var q=($('gsearch').value||'').toLowerCase().trim();
+  var items=gList.querySelectorAll('.g-item');
+  var visible=0;
+  items.forEach(function(el){
+    var match=!q||el.getAttribute('data-search').includes(q);
+    el.classList.toggle('hidden',!match);
+    if(match) visible++;
+  });
+  gNone.classList.toggle('hidden',visible>0||!q);
+}
+$('gsearch').addEventListener('input',doGlossarySearch);
+$('gsearch').addEventListener('keyup',doGlossarySearch);
+
+// ═══════════════════════════════════════════════════════════════
+// ROADMAP TIMELINE
+// ═══════════════════════════════════════════════════════════════
+var tlData=[
+  {year:'1994',title:"Shor's Algorithm",desc:"Peter Shor publishes polynomial-time quantum factoring algorithm. Ignites the global quantum hardware race.",col:'#f97316'},
+  {year:'1996',title:"Grover's Algorithm",desc:"Quadratic speedup for unstructured search. √N vs classical N. Core of WISER Week 4.",col:'#f97316'},
+  {year:'2000',title:'DiVincenzo Criteria',desc:'Five requirements for a viable qubit formalised. Still the benchmark two decades later. Section 3 of this playbook.',col:'#a855f7'},
+  {year:'2019',title:'Quantum Supremacy (Google)',desc:"Sycamore 53-qubit processor completes a sampling task in 200 seconds vs ~10,000 years classically.",col:'#00e5ff'},
+  {year:'2020',title:'Photonic Advantage (USTC)',desc:"China's Jiuzhang photonic system demonstrates quantum computational advantage using boson sampling.",col:'#00e5ff'},
+  {year:'2022–23',title:'Logical Qubit Demonstrations',desc:'Google, Harvard/QuEra, Quantinuum all demonstrate early logical qubit operations and error suppression.',col:'#10b981'},
+  {year:'2024',title:'IBM Heron (156 qubits)',desc:'IBM deploys Heron processor. IBM + TCS bringing same technology to Amaravathi Quantum Valley, Andhra Pradesh.',col:'#10b981'},
+  {year:'Mar 2026',title:'YOU ARE HERE — WISER Phase 2',desc:'One of 3,000 selected from 62,000+ learners. 6 weeks: Qiskit, real hardware, Grover\'s, VQA, QAOA. Goal: Top 100.',col:'#f59e0b',highlight:true},
+  {year:'Jun 2026',title:'WISER Global Summer School (Goal)',desc:'Top 100 Phase 2 performers. 8 weeks. Quantum + AI + Optimisation. Mentorship + $25,000 in-kind value.',col:'#f59e0b'},
+  {year:'~2028',title:'Early Fault-Tolerant Experiments',desc:'First demonstrations of fault-tolerant algorithms on logical qubits at useful scale.',col:'#94a3b8'},
+  {year:'~2030+',title:'Fault-Tolerant Quantum Computers',desc:'Millions of physical qubits. Shor\'s algorithm on RSA-2048 feasible. Quantum integration architects in extreme demand.',col:'#94a3b8'},
+];
+
+var tlEl=$('tl-container');
+tlData.forEach(function(item){
+  var div=document.createElement('div');
+  div.className='tl-item';
+  div.innerHTML=
+    '<div class="tl-dot" style="background:'+(item.highlight?item.col:'transparent')+';border-color:'+item.col+';'+(item.highlight?'box-shadow:0 0 10px '+item.col+';':'')+'"></div>'
+    +'<div class="tl-year" style="color:'+item.col+'">'+item.year+'</div>'
+    +'<div class="tl-title"'+(item.highlight?' style="color:'+item.col+'"':'')+'>'+item.title+'</div>'
+    +'<div class="tl-desc">'+item.desc+'</div>';
+  tlEl.appendChild(div);
+});
+
+})(); // end IIFE
+</script>
+</body>
+</html>
