@@ -218,7 +218,7 @@ input[type=range]::-moz-range-thumb{width:15px;height:15px;border-radius:50%;bac
 .pb-pct{font-family:var(--mono);font-size:.72rem;width:36px;text-align:right}
 
 /* ── CANVASES ───────────────────────────────────────────── */
-canvas{display:block;border-radius:var(--r);background:var(--bg);border:1px solid var(--border);max-width:100%;height:auto}
+canvas{display:block;border-radius:var(--r);background:var(--bg);border:1px solid var(--border);max-width:100%;box-sizing:content-box}
 
 /* ── BLOCH ──────────────────────────────────────────────── */
 .bloch-wrap{display:flex;flex-wrap:wrap;gap:1.4rem;align-items:flex-start}
@@ -847,44 +847,38 @@ textarea.j-input::placeholder{color:var(--text3)}
 </div>
 
 <script>
-// ═══════════════════════════════════════════════════════════════
-// ALL CODE runs after DOM is ready (script is last in body,
-// but we also wrap in DOMContentLoaded for absolute safety)
-// ═══════════════════════════════════════════════════════════════
-(function() {
+(function(){
 'use strict';
 
-// ── HELPERS ─────────────────────────────────────────────────────
+// ── HELPERS ─────────────────────────────────────────────────
 function $(id){ return document.getElementById(id); }
 function clamp(v,lo,hi){ return Math.max(lo,Math.min(hi,v)); }
-function debounce(fn,ms){ var t; return function(){ clearTimeout(t); t=setTimeout(fn,ms); }; }
-function setupCanvas(cv){
-  if(!cv) return null;
-  var ctx=cv.getContext('2d');
-  if(!ctx) return null;
-  var dpr=window.devicePixelRatio||1;
-  var cw=parseInt(cv.style.width||cv.width), ch=parseInt(cv.style.height||cv.height);
-  cv.width=cw*dpr; cv.height=ch*dpr;
-  cv.style.width=cw+'px'; cv.style.height=ch+'px';
-  ctx.scale(dpr,dpr);
-  return ctx;
-}
+
+// Cross-browser rounded rect (no ctx.roundRect needed)
 function rr(ctx,x,y,w,h,r){
-  // Cross-browser rounded rect without ctx.roundRect
   ctx.beginPath();
-  ctx.moveTo(x+r,y);
-  ctx.lineTo(x+w-r,y);
-  ctx.arcTo(x+w,y,x+w,y+r,r);
-  ctx.lineTo(x+w,y+h-r);
-  ctx.arcTo(x+w,y+h,x+w-r,y+h,r);
-  ctx.lineTo(x+r,y+h);
-  ctx.arcTo(x,y+h,x,y+h-r,r);
-  ctx.lineTo(x,y+r);
-  ctx.arcTo(x,y,x+r,y,r);
-  ctx.closePath();
+  ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y);
+  ctx.arcTo(x+w,y,x+w,y+r,r); ctx.lineTo(x+w,y+h-r);
+  ctx.arcTo(x+w,y+h,x+w-r,y+h,r); ctx.lineTo(x+r,y+h);
+  ctx.arcTo(x,y+h,x,y+h-r,r); ctx.lineTo(x,y+r);
+  ctx.arcTo(x,y,x+r,y,r); ctx.closePath();
 }
 
-// ── NAV + SIDEBAR ────────────────────────────────────────────────
+// Debounce for slider input events
+function debounce(fn,ms){
+  var t;
+  return function(){ clearTimeout(t); t=setTimeout(fn,ms); };
+}
+
+// Safe canvas context getter — NO devicePixelRatio scaling
+// (scaling broke all coordinate calculations)
+function ctx2d(id){
+  var cv=$(id);
+  if(!cv) return null;
+  return cv.getContext('2d');
+}
+
+// ── NAV SCROLL TRACKING ─────────────────────────────────────
 var navLinks = document.querySelectorAll('#sb-nav a[href^="#"]');
 var allSections = Array.from(document.querySelectorAll('section[id]'));
 
@@ -897,48 +891,18 @@ function updateNav(){
     a.classList.toggle('active', a.getAttribute('href')==='#'+cur);
   });
 }
-window.addEventListener('scroll',function(){
-  updateNav();
-  var sp=$('scroll-prog');
-  if(sp){var t=document.documentElement.scrollHeight-window.innerHeight;sp.style.transform=t>0?'scaleX('+(window.scrollY/t)+')':'scaleX(0)';}
-},{passive:true});
+window.addEventListener('scroll',updateNav,{passive:true});
 updateNav();
 
-
-// menu-btn is now wired in the mobile nav block below
-
-// Nav link clicks — close sidebar, then scroll to section
-navLinks.forEach(function(a){
-  a.addEventListener('click',function(e){
-    var href=a.getAttribute('href');
-    if(!href||!href.startsWith('#')) return;
-    var target=document.querySelector(href);
-    if(!target) return;
-    e.preventDefault();
-    var isMobile=window.innerWidth<=768;
-    if(isMobile&&$('sidebar').classList.contains('open')){
-      closeSidebar();
-      // Wait for sidebar slide-out animation (280ms) then scroll
-      setTimeout(function(){
-        var top=target.getBoundingClientRect().top+window.scrollY-60;
-        window.scrollTo({top:top,behavior:'smooth'});
-      },320);
-    } else {
-      var top=target.getBoundingClientRect().top+window.scrollY-60;
-      window.scrollTo({top:top,behavior:'smooth'});
-    }
-  });
-});
-
-// ── SCROLL REVEAL ─────────────────────────────────────────────
-var reveals = document.querySelectorAll('.reveal');
+// ── SCROLL REVEAL ────────────────────────────────────────────
+var reveals=document.querySelectorAll('.reveal');
 var _revCount=0, _revTotal=reveals.length;
-var revObs = new IntersectionObserver(function(entries){
+var revObs=new IntersectionObserver(function(entries){
   entries.forEach(function(e){
     if(e.isIntersecting){
       e.target.classList.add('vis');
       revObs.unobserve(e.target);
-      if(++_revCount >= _revTotal) revObs.disconnect();
+      if(++_revCount>=_revTotal) revObs.disconnect();
     }
   });
 },{threshold:0.06});
@@ -946,78 +910,73 @@ reveals.forEach(function(r){ revObs.observe(r); });
 
 // ═══════════════════════════════════════════════════════════════
 // BLOCH SPHERE
+// Canvas logical size: 250×250
 // ═══════════════════════════════════════════════════════════════
-var bCanvas = $('bloch-cv');
-var bCtx = setupCanvas(bCanvas);
-var bTheta = Math.PI/2, bPhi = 0;
+var bCtx = ctx2d('bloch-cv');
+var bTheta=Math.PI/2, bPhi=0;
+// Fixed logical dimensions — never read from canvas.width
+var BW=250, BH=250;
 
 function drawBloch(){
-  var W=bCanvas.width, H=bCanvas.height;
-  var cx=W/2, cy=H/2, r=100;
-  bCtx.clearRect(0,0,W,H);
-  bCtx.fillStyle='#04081a'; bCtx.fillRect(0,0,W,H);
+  if(!bCtx) return;
+  var cx=BW/2, cy=BH/2, r=100;
+  bCtx.clearRect(0,0,BW,BH);
+  bCtx.fillStyle='#04081a'; bCtx.fillRect(0,0,BW,BH);
 
-  // Sphere outline
+  // Sphere circle
   bCtx.strokeStyle='#1a2a4a'; bCtx.lineWidth=2;
   bCtx.beginPath(); bCtx.arc(cx,cy,r,0,Math.PI*2); bCtx.stroke();
 
-  // Equator (ellipse drawn manually)
+  // Equator ellipse (manual)
   bCtx.strokeStyle='rgba(26,42,74,.75)'; bCtx.lineWidth=1;
   bCtx.beginPath();
-  for(var i=0;i<=360;i+=4){
+  for(var i=0;i<=360;i+=5){
     var a=i*Math.PI/180;
     var ex=cx+r*Math.cos(a), ey=cy+r*0.28*Math.sin(a);
-    i===0 ? bCtx.moveTo(ex,ey) : bCtx.lineTo(ex,ey);
+    i===0?bCtx.moveTo(ex,ey):bCtx.lineTo(ex,ey);
   }
   bCtx.stroke();
 
   // Axis lines
-  bCtx.strokeStyle='rgba(148,163,184,.22)'; bCtx.lineWidth=1;
+  bCtx.strokeStyle='rgba(148,163,184,.2)'; bCtx.lineWidth=1;
   bCtx.beginPath(); bCtx.moveTo(cx-r-8,cy); bCtx.lineTo(cx+r+8,cy); bCtx.stroke();
   bCtx.beginPath(); bCtx.moveTo(cx,cy-r-14); bCtx.lineTo(cx,cy+r+14); bCtx.stroke();
 
-  // Labels
-  bCtx.font='bold 13px Space Mono,monospace';
-  bCtx.fillStyle='#94a3b8'; bCtx.textAlign='center';
+  // Axis labels
+  bCtx.fillStyle='#94a3b8'; bCtx.font='bold 12px Space Mono,monospace'; bCtx.textAlign='center';
   bCtx.fillText('|0⟩',cx,cy-r-18);
-  bCtx.fillText('|1⟩',cx,cy+r+28);
-  bCtx.font='10px Space Mono,monospace'; bCtx.fillStyle='rgba(148,163,184,.5)';
-  bCtx.fillText('|+⟩',cx+r+12,cy+4);
-  bCtx.textAlign='right'; bCtx.fillText('|-⟩',cx-r-8,cy+4);
+  bCtx.fillText('|1⟩',cx,cy+r+26);
   bCtx.textAlign='left';
 
-  // State vector
+  // State vector (3D→2D projection)
   var x3=Math.sin(bTheta)*Math.cos(bPhi);
   var z3=Math.cos(bTheta);
   var y3=Math.sin(bTheta)*Math.sin(bPhi);
   var px=cx+r*x3, py=cy-r*z3;
 
-  // Shadow line (projection)
-  var sx=cx+r*x3, sy=cy+r*0.28*y3;
-  bCtx.setLineDash([4,4]);
-  bCtx.strokeStyle='rgba(0,229,255,.2)'; bCtx.lineWidth=1;
-  bCtx.beginPath(); bCtx.moveTo(px,py); bCtx.lineTo(sx,sy); bCtx.stroke();
+  // Shadow projection
+  bCtx.setLineDash([3,4]); bCtx.strokeStyle='rgba(0,229,255,.18)'; bCtx.lineWidth=1;
+  bCtx.beginPath(); bCtx.moveTo(px,py); bCtx.lineTo(cx+r*x3, cy+r*0.28*y3); bCtx.stroke();
   bCtx.setLineDash([]);
 
-  // Main arrow
-  bCtx.shadowColor='#00e5ff'; bCtx.shadowBlur=14;
+  // Arrow
+  bCtx.shadowColor='#00e5ff'; bCtx.shadowBlur=12;
   bCtx.strokeStyle='#00e5ff'; bCtx.lineWidth=2.5;
   bCtx.beginPath(); bCtx.moveTo(cx,cy); bCtx.lineTo(px,py); bCtx.stroke();
-
   // Arrowhead
   var ang=Math.atan2(py-cy,px-cx);
   bCtx.fillStyle='#00e5ff';
   bCtx.beginPath();
   bCtx.moveTo(px,py);
-  bCtx.lineTo(px-12*Math.cos(ang-.4),py-12*Math.sin(ang-.4));
-  bCtx.lineTo(px-12*Math.cos(ang+.4),py-12*Math.sin(ang+.4));
+  bCtx.lineTo(px-11*Math.cos(ang-.4),py-11*Math.sin(ang-.4));
+  bCtx.lineTo(px-11*Math.cos(ang+.4),py-11*Math.sin(ang+.4));
   bCtx.closePath(); bCtx.fill();
   bCtx.shadowBlur=0;
 
-  // State dot
-  bCtx.shadowColor='#00e5ff'; bCtx.shadowBlur=10;
+  // Tip dot
+  bCtx.shadowColor='#00e5ff'; bCtx.shadowBlur=8;
   bCtx.fillStyle='#00e5ff';
-  bCtx.beginPath(); bCtx.arc(px,py,5,0,Math.PI*2); bCtx.fill();
+  bCtx.beginPath(); bCtx.arc(px,py,4,0,Math.PI*2); bCtx.fill();
   bCtx.shadowBlur=0;
 
   // Center dot
@@ -1035,59 +994,58 @@ function updateBloch(){
   var p0=(a*a*100).toFixed(1), p1=(b*b*100).toFixed(1);
   $('pb0').style.width=p0+'%'; $('pb1').style.width=p1+'%';
   $('pp0').textContent=p0+'%'; $('pp1').textContent=p1+'%';
-  var ps=ph===0?'':(ph>0?'·e^(i'+ph+'°)':'');
-  $('state-formula').textContent=a.toFixed(2)+'|0⟩ + '+b.toFixed(2)+ps+'|1⟩';
+  $('state-formula').textContent=a.toFixed(2)+'|0⟩ + '+b.toFixed(2)+(ph?'·e^(i'+ph+'°)':'')+'|1⟩';
   drawBloch();
 }
-var _dBloch=debounce(updateBloch,16);
-$('sl-theta').addEventListener('input',_dBloch);
-$('sl-phi').addEventListener('input',_dBloch);
+var _dbBloch=debounce(updateBloch,16);
+$('sl-theta').addEventListener('input',_dbBloch);
+$('sl-phi').addEventListener('input',_dbBloch);
 updateBloch();
 
 // ═══════════════════════════════════════════════════════════════
 // MEASUREMENT COLLAPSE
+// Canvas logical size: 400×110
 // ═══════════════════════════════════════════════════════════════
-var colCv=$('collapse-cv'), cCtx=setupCanvas(colCv);
+var cCtx=ctx2d('collapse-cv');
 var shots=0,zeros=0,ones=0;
+var CW=400, CH=110;
 
 function drawSuperposition(){
-  var W=colCv.width,H=colCv.height;
-  cCtx.clearRect(0,0,W,H);
-  cCtx.fillStyle='#04081a'; cCtx.fillRect(0,0,W,H);
-  [[0,'#00e5ff'],[Math.PI,'#7c3aed']].forEach(function(p){
-    var off=p[0], col=p[1];
-    cCtx.strokeStyle=col; cCtx.lineWidth=2.5;
-    cCtx.shadowColor=col; cCtx.shadowBlur=10;
+  if(!cCtx) return;
+  cCtx.clearRect(0,0,CW,CH);
+  cCtx.fillStyle='#04081a'; cCtx.fillRect(0,0,CW,CH);
+  [[0,'#00e5ff'],[Math.PI,'#a855f7']].forEach(function(p){
+    cCtx.strokeStyle=p[1]; cCtx.lineWidth=2.5;
+    cCtx.shadowColor=p[1]; cCtx.shadowBlur=8;
     cCtx.beginPath();
-    for(var x=18;x<=W-18;x++){
-      var t=(x-18)/(W-36)*4*Math.PI;
-      var y=H/2+(off===0?-18:18)+18*Math.sin(t+off);
-      x===18?cCtx.moveTo(x,y):cCtx.lineTo(x,y);
+    for(var x=16;x<=CW-16;x++){
+      var t=(x-16)/(CW-32)*4*Math.PI;
+      var y=CH/2+(p[0]===0?-16:16)+16*Math.sin(t+p[0]);
+      x===16?cCtx.moveTo(x,y):cCtx.lineTo(x,y);
     }
     cCtx.stroke(); cCtx.shadowBlur=0;
   });
   cCtx.fillStyle='rgba(0,229,255,.75)';
-  cCtx.font='bold 12px Space Mono,monospace'; cCtx.textAlign='left';
-  cCtx.fillText('|ψ⟩ = (|0⟩ + |1⟩)/√2',16,16);
+  cCtx.font='bold 11px Space Mono,monospace'; cCtx.textAlign='left';
+  cCtx.fillText('|ψ⟩ = (|0⟩+|1⟩)/√2',14,14);
   cCtx.fillStyle='rgba(148,163,184,.5)';
   cCtx.font='11px DM Sans,sans-serif';
-  cCtx.fillText('Superposition — simultaneously |0⟩ and |1⟩',16,H-10);
-  cCtx.textAlign='left';
+  cCtx.fillText('Superposition — both |0⟩ and |1⟩ simultaneously',14,CH-8);
 }
 
 function drawCollapsed(res){
-  var W=colCv.width,H=colCv.height;
-  cCtx.clearRect(0,0,W,H);
-  cCtx.fillStyle='#04081a'; cCtx.fillRect(0,0,W,H);
+  if(!cCtx) return;
+  cCtx.clearRect(0,0,CW,CH);
+  cCtx.fillStyle='#04081a'; cCtx.fillRect(0,0,CW,CH);
   var col=res===0?'#00e5ff':'#a855f7';
-  cCtx.shadowColor=col; cCtx.shadowBlur=30;
+  cCtx.shadowColor=col; cCtx.shadowBlur=28;
   cCtx.fillStyle=col;
-  cCtx.font='bold 52px Space Mono,monospace'; cCtx.textAlign='center';
-  cCtx.fillText('|'+res+'⟩',W/2,H/2+18);
+  cCtx.font='bold 50px Space Mono,monospace'; cCtx.textAlign='center';
+  cCtx.fillText('|'+res+'⟩',CW/2,CH/2+18);
   cCtx.shadowBlur=0;
   cCtx.fillStyle='rgba(148,163,184,.65)';
-  cCtx.font='12px DM Sans,sans-serif';
-  cCtx.fillText('Collapsed — definite state |'+res+'⟩',W/2,H-10);
+  cCtx.font='11px DM Sans,sans-serif';
+  cCtx.fillText('Collapsed to definite state |'+res+'⟩',CW/2,CH-8);
   cCtx.textAlign='left';
 }
 
@@ -1098,7 +1056,7 @@ function doMeasure(){
   drawCollapsed(r);
   $('collapse-result').textContent='Measured: |'+r+'⟩';
   $('collapse-result').style.color=r===0?'#00e5ff':'#a855f7';
-  $('shot-count').textContent='Shots: '+shots+' · |0⟩: '+zeros+' ('+Math.round(zeros/shots*100)+'%) · |1⟩: '+ones+' ('+Math.round(ones/shots*100)+'%)';
+  $('shot-count').textContent='Shots: '+shots+' · |0⟩: '+zeros+' ('+(shots?Math.round(zeros/shots*100):0)+'%) · |1⟩: '+ones+' ('+(shots?Math.round(ones/shots*100):0)+'%)';
 }
 function doResetCol(){
   shots=0;zeros=0;ones=0;
@@ -1112,78 +1070,74 @@ drawSuperposition();
 
 // ═══════════════════════════════════════════════════════════════
 // BELL STATE CIRCUIT BUILDER
+// Canvas logical size: 560×130
 // ═══════════════════════════════════════════════════════════════
-var circCv=$('circuit-cv'), cir=setupCanvas(circCv);
+var cir=ctx2d('circuit-cv');
 var gates=[];
+var CCW=560, CCH=130;
 
 var bellStates={
-  '':         'Initial state: |00⟩',
-  'H':        'After H on q₀: (|00⟩ + |10⟩)/√2',
-  'H,CX':     '⚡ Bell state |Φ+⟩ = (|00⟩ + |11⟩)/√2  — qubits are entangled!',
-  'H,CX,M':   'Measured: collapses to |00⟩ or |11⟩ with equal probability (50/50)',
+  '':        'Initial state: |00⟩',
+  'H':       'After H on q₀: (|00⟩ + |10⟩)/√2',
+  'H,CX':    '⚡ Bell state |Φ+⟩ = (|00⟩ + |11⟩)/√2  — qubits are entangled!',
+  'H,CX,M':  'Measured: collapses to |00⟩ or |11⟩ (50/50 probability)'
 };
 
 function drawCircuit(){
-  var W=circCv.width,H=circCv.height;
-  cir.clearRect(0,0,W,H);
-  cir.fillStyle='#04081a'; cir.fillRect(0,0,W,H);
+  if(!cir) return;
+  cir.clearRect(0,0,CCW,CCH);
+  cir.fillStyle='#04081a'; cir.fillRect(0,0,CCW,CCH);
 
   var ly=[42,90], sx=68;
+
   // Wire labels
   cir.fillStyle='#94a3b8'; cir.font='bold 13px Space Mono,monospace'; cir.textAlign='right';
-  cir.fillText('q₀',sx-8,ly[0]+5);
-  cir.fillText('q₁',sx-8,ly[1]+5);
+  cir.fillText('q₀',sx-10,ly[0]+5);
+  cir.fillText('q₁',sx-10,ly[1]+5);
   cir.textAlign='left';
 
   // Init kets
   ly.forEach(function(y){
-    cir.strokeStyle='#1a2a4a'; cir.lineWidth=1;
-    rr(cir,sx-28,y-14,30,20,3); cir.strokeStyle='#243558'; cir.fillStyle='#0d1635'; cir.fill(); cir.stroke();
+    cir.strokeStyle='#243558'; cir.lineWidth=1; cir.fillStyle='#0d1635';
+    rr(cir,sx-28,y-14,30,20,3); cir.fill(); cir.stroke();
     cir.fillStyle='#00e5ff'; cir.font='11px Space Mono,monospace'; cir.textAlign='center';
-    cir.fillText('|0⟩',sx-13,y+4);
-    cir.textAlign='left';
+    cir.fillText('|0⟩',sx-13,y+4); cir.textAlign='left';
   });
 
   // Wire lines
-  var endX=sx+Math.max(gates.length,1)*88+30;
-  endX=Math.min(endX,W-15);
+  var endX=Math.min(sx+Math.max(gates.length,1)*86+28, CCW-10);
   ly.forEach(function(y){
     cir.strokeStyle='#1a2a4a'; cir.lineWidth=2;
     cir.beginPath(); cir.moveTo(sx,y); cir.lineTo(endX,y); cir.stroke();
   });
 
+  // Draw each gate
   gates.forEach(function(g,i){
-    var gx=sx+10+i*88;
+    var gx=sx+8+i*86;
     if(g==='H'){
-      // H gate box
-      cir.fillStyle='rgba(124,79,0,.3)'; cir.strokeStyle='#f59e0b'; cir.lineWidth=2;
+      cir.fillStyle='rgba(120,70,0,.35)'; cir.strokeStyle='#f59e0b'; cir.lineWidth=2;
       cir.shadowColor='#f59e0b'; cir.shadowBlur=8;
-      rr(cir,gx,ly[0]-16,36,30,5); cir.fill(); cir.stroke();
-      cir.shadowBlur=0;
+      rr(cir,gx,ly[0]-16,36,30,5); cir.fill(); cir.stroke(); cir.shadowBlur=0;
       cir.fillStyle='#f59e0b'; cir.font='bold 15px Space Mono,monospace'; cir.textAlign='center';
-      cir.fillText('H',gx+18,ly[0]+6);
-      cir.textAlign='left';
+      cir.fillText('H',gx+18,ly[0]+6); cir.textAlign='left';
     } else if(g==='CX'){
       // Control dot
       cir.fillStyle='#a855f7'; cir.shadowColor='#a855f7'; cir.shadowBlur=8;
-      cir.beginPath(); cir.arc(gx+18,ly[0],9,0,Math.PI*2); cir.fill();
-      cir.shadowBlur=0;
-      // Connector line
+      cir.beginPath(); cir.arc(gx+18,ly[0],9,0,Math.PI*2); cir.fill(); cir.shadowBlur=0;
+      // Connector
       cir.strokeStyle='#a855f7'; cir.lineWidth=2;
       cir.beginPath(); cir.moveTo(gx+18,ly[0]+9); cir.lineTo(gx+18,ly[1]-18); cir.stroke();
-      // Target (⊕)
+      // Target ⊕
       cir.shadowColor='#a855f7'; cir.shadowBlur=6;
       cir.beginPath(); cir.arc(gx+18,ly[1],18,0,Math.PI*2); cir.stroke();
-      cir.beginPath(); cir.moveTo(gx+18-18,ly[1]); cir.lineTo(gx+18+18,ly[1]); cir.stroke();
+      cir.beginPath(); cir.moveTo(gx,ly[1]); cir.lineTo(gx+36,ly[1]); cir.stroke();
       cir.beginPath(); cir.moveTo(gx+18,ly[1]-18); cir.lineTo(gx+18,ly[1]+18); cir.stroke();
       cir.shadowBlur=0;
     } else if(g==='M'){
       ly.forEach(function(y){
-        cir.fillStyle='rgba(0,60,35,.4)'; cir.strokeStyle='#10b981'; cir.lineWidth=2;
+        cir.fillStyle='rgba(0,55,35,.45)'; cir.strokeStyle='#10b981'; cir.lineWidth=2;
         cir.shadowColor='#10b981'; cir.shadowBlur=6;
-        rr(cir,gx,y-16,36,30,5); cir.fill(); cir.stroke();
-        cir.shadowBlur=0;
-        // Meter arc
+        rr(cir,gx,y-16,36,30,5); cir.fill(); cir.stroke(); cir.shadowBlur=0;
         cir.strokeStyle='#10b981'; cir.lineWidth=1.8;
         cir.beginPath(); cir.arc(gx+18,y+4,10,Math.PI,0); cir.stroke();
         cir.beginPath(); cir.moveTo(gx+18,y+4); cir.lineTo(gx+28,y-6); cir.stroke();
@@ -1192,41 +1146,42 @@ function drawCircuit(){
   });
 
   var key=gates.join(',');
-  var stateText=bellStates[key]||(gates.length?'Intermediate state':'Initial state: |00⟩');
-  $('bell-out').textContent=stateText;
-  $('bell-out').style.color=key==='H,CX'?'#10b981':'#00e5ff';
+  var txt=bellStates[key]||(gates.length?'Intermediate state':'Initial state: |00⟩');
+  $('bell-out').textContent=txt;
+  $('bell-out').style.color=(key==='H,CX')?'#10b981':'#00e5ff';
 }
 
 function addGate(g){
   if(gates.includes('M')) return;
-  if(g==='H' && gates.includes('H')) return;
-  if(g==='CX' && !gates.includes('H')){
-    $('bell-out').textContent='⚠ Add the H gate first to create superposition before CNOT!';
+  if(g==='H'&&gates.includes('H')) return;
+  if(g==='CX'&&!gates.includes('H')){
+    $('bell-out').textContent='⚠ Add H gate first to create superposition before CNOT!';
     $('bell-out').style.color='#f59e0b'; return;
   }
   gates.push(g); drawCircuit();
 }
 function resetCircuit(){ gates=[]; drawCircuit(); }
-$('gbtn-h').addEventListener('click',function(){addGate('H');});
-$('gbtn-cx').addEventListener('click',function(){addGate('CX');});
-$('gbtn-m').addEventListener('click',function(){addGate('M');});
+$('gbtn-h').addEventListener('click',function(){ addGate('H'); });
+$('gbtn-cx').addEventListener('click',function(){ addGate('CX'); });
+$('gbtn-m').addEventListener('click',function(){ addGate('M'); });
 $('gbtn-r').addEventListener('click',resetCircuit);
 drawCircuit();
 
 // ═══════════════════════════════════════════════════════════════
 // COHERENCE CALCULATOR
+// Canvas logical size: 270×195
 // ═══════════════════════════════════════════════════════════════
-var cohCv=$('coh-cv'), cohCtx=setupCanvas(cohCv);
+var cohCtx=ctx2d('coh-cv');
+var COW=270, COH=195;
 
 function drawCohChart(t1,t2){
-  var W=cohCv.width,H=cohCv.height;
-  cohCtx.clearRect(0,0,W,H);
-  cohCtx.fillStyle='#04081a'; cohCtx.fillRect(0,0,W,H);
+  if(!cohCtx) return;
+  cohCtx.clearRect(0,0,COW,COH);
+  cohCtx.fillStyle='#04081a'; cohCtx.fillRect(0,0,COW,COH);
+  var pl=38,pr=10,pt=18,pb=28;
+  var gw=COW-pl-pr, gh=COH-pt-pb;
 
-  var pl=38,pr=12,pt=18,pb=30;
-  var gw=W-pl-pr,gh=H-pt-pb;
-
-  // Grid
+  // Grid lines
   cohCtx.strokeStyle='rgba(26,42,74,.8)'; cohCtx.lineWidth=.8;
   for(var i=0;i<=4;i++){
     var gy=pt+gh*i/4;
@@ -1237,12 +1192,12 @@ function drawCohChart(t1,t2){
   cohCtx.beginPath(); cohCtx.moveTo(pl,pt); cohCtx.lineTo(pl,pt+gh); cohCtx.stroke();
   cohCtx.beginPath(); cohCtx.moveTo(pl,pt+gh); cohCtx.lineTo(pl+gw,pt+gh); cohCtx.stroke();
 
-  // Y labels
+  // Axis labels
   cohCtx.fillStyle='#475569'; cohCtx.font='9px Space Mono,monospace'; cohCtx.textAlign='right';
-  cohCtx.fillText('1.0',pl-3,pt+4);
+  cohCtx.fillText('1.0',pl-3,pt+5);
   cohCtx.fillText('0',pl-3,pt+gh+3);
   cohCtx.textAlign='center';
-  cohCtx.fillText('Time →',pl+gw/2,H-2);
+  cohCtx.fillText('Time →',pl+gw/2,COH-2);
   cohCtx.textAlign='left';
 
   var maxT=Math.max(t1,t2)*2.2;
@@ -1276,10 +1231,9 @@ function drawCohChart(t1,t2){
   // Legend
   cohCtx.fillStyle='#f97316'; cohCtx.fillRect(pl+3,pt+3,12,3);
   cohCtx.fillStyle='#94a3b8'; cohCtx.font='9px Space Mono,monospace';
-  cohCtx.fillText('T₁',pl+18,pt+8);
-  cohCtx.fillStyle='#00e5ff'; cohCtx.fillRect(pl+32,pt+3,12,3);
-  cohCtx.fillStyle='#94a3b8';
-  cohCtx.fillText('T₂',pl+47,pt+8);
+  cohCtx.fillText('T₁',pl+18,pt+9);
+  cohCtx.fillStyle='#00e5ff'; cohCtx.fillRect(pl+34,pt+3,12,3);
+  cohCtx.fillStyle='#94a3b8'; cohCtx.fillText('T₂',pl+50,pt+9);
 }
 
 function updateCoherence(){
@@ -1301,16 +1255,19 @@ function updateCoherence(){
   }
   drawCohChart(t1,t2);
 }
-var _dCoh=debounce(updateCoherence,16);
-$('sl-t1').addEventListener('input',_dCoh);
-$('sl-t2').addEventListener('input',_dCoh);
-$('sl-gt').addEventListener('input',_dCoh);
+var _dbCoh=debounce(updateCoherence,16);
+['sl-t1','sl-t2','sl-gt'].forEach(function(id){
+  $(id).addEventListener('input',_dbCoh);
+});
 updateCoherence();
 
 // ═══════════════════════════════════════════════════════════════
 // PLATFORM RADAR CHART
+// Canvas logical size: 300×300
 // ═══════════════════════════════════════════════════════════════
-var radCv=$('radar-cv'), rCtx=setupCanvas(radCv);
+var rCtx=ctx2d('radar-cv');
+var RW=300, RH=300;
+
 var platforms=[
   {name:'Superconducting',color:'#00e5ff',scores:[4,3,5,4,3],on:true},
   {name:'Trapped Ion',    color:'#a855f7',scores:[4,5,4,5,2],on:true},
@@ -1318,13 +1275,13 @@ var platforms=[
   {name:'Photonic',      color:'#f59e0b',scores:[3,2,3,3,2],on:false},
   {name:'Semiconductor', color:'#f97316',scores:[3,3,4,3,5],on:false},
 ];
-var radLabels=['Init','Coherence','Uni. Gates','Readout','Scalable'];
+var radLabels=['Init','Coherence','Uni.Gates','Readout','Scalable'];
 
 function drawRadar(){
-  var W=radCv.width,H=radCv.height;
-  rCtx.clearRect(0,0,W,H);
-  rCtx.fillStyle='#04081a'; rCtx.fillRect(0,0,W,H);
-  var cx=W/2,cy=H/2,maxR=Math.min(cx,cy)-38,n=5;
+  if(!rCtx) return;
+  rCtx.clearRect(0,0,RW,RH);
+  rCtx.fillStyle='#04081a'; rCtx.fillRect(0,0,RW,RH);
+  var cx=RW/2, cy=RH/2, maxR=Math.min(cx,cy)-40, n=5;
 
   // Grid rings
   for(var ring=1;ring<=5;ring++){
@@ -1333,8 +1290,9 @@ function drawRadar(){
     rCtx.beginPath();
     for(var i=0;i<=n;i++){
       var a=(i/n)*Math.PI*2-Math.PI/2;
-      var rr2=(ring/5)*maxR;
-      i===0?rCtx.moveTo(cx+rr2*Math.cos(a),cy+rr2*Math.sin(a)):rCtx.lineTo(cx+rr2*Math.cos(a),cy+rr2*Math.sin(a));
+      var rv=(ring/5)*maxR;
+      i===0?rCtx.moveTo(cx+rv*Math.cos(a),cy+rv*Math.sin(a))
+           :rCtx.lineTo(cx+rv*Math.cos(a),cy+rv*Math.sin(a));
     }
     rCtx.closePath(); rCtx.stroke();
   }
@@ -1345,7 +1303,7 @@ function drawRadar(){
     rCtx.strokeStyle='rgba(71,85,105,.55)'; rCtx.lineWidth=1;
     rCtx.beginPath(); rCtx.moveTo(cx,cy); rCtx.lineTo(cx+maxR*Math.cos(a),cy+maxR*Math.sin(a)); rCtx.stroke();
     rCtx.fillStyle='#94a3b8'; rCtx.font='10px Space Mono,monospace'; rCtx.textAlign='center';
-    rCtx.fillText(radLabels[i],cx+(maxR+22)*Math.cos(a),cy+(maxR+22)*Math.sin(a)+4);
+    rCtx.fillText(radLabels[i],cx+(maxR+20)*Math.cos(a),cy+(maxR+20)*Math.sin(a)+4);
   }
   rCtx.textAlign='left';
 
@@ -1355,17 +1313,17 @@ function drawRadar(){
     p.scores.forEach(function(s,i){
       var a=(i/n)*Math.PI*2-Math.PI/2;
       var rv=(s/5)*maxR;
-      i===0?rCtx.moveTo(cx+rv*Math.cos(a),cy+rv*Math.sin(a)):rCtx.lineTo(cx+rv*Math.cos(a),cy+rv*Math.sin(a));
+      i===0?rCtx.moveTo(cx+rv*Math.cos(a),cy+rv*Math.sin(a))
+           :rCtx.lineTo(cx+rv*Math.cos(a),cy+rv*Math.sin(a));
     });
     rCtx.closePath();
-    rCtx.fillStyle=p.color+'25';
-    rCtx.strokeStyle=p.color; rCtx.lineWidth=2;
+    rCtx.fillStyle=p.color+'22'; rCtx.strokeStyle=p.color; rCtx.lineWidth=2;
     rCtx.shadowColor=p.color; rCtx.shadowBlur=8;
-    rCtx.fill(); rCtx.stroke();
-    rCtx.shadowBlur=0;
+    rCtx.fill(); rCtx.stroke(); rCtx.shadowBlur=0;
   });
 }
 
+// Platform toggle buttons
 var platBtnsEl=$('plat-btns');
 platforms.forEach(function(p){
   var btn=document.createElement('div');
@@ -1380,51 +1338,44 @@ drawRadar();
 
 // ═══════════════════════════════════════════════════════════════
 // NISQ FIDELITY GAUGE
+// Canvas logical size: 210×175
 // ═══════════════════════════════════════════════════════════════
-var gaugCv=$('gauge-cv'), gCtx=setupCanvas(gaugCv);
+var gCtx=ctx2d('gauge-cv');
+var GW=210, GH=175;
 
 function drawGauge(pct){
-  var W=gaugCv.width,H=gaugCv.height;
-  gCtx.clearRect(0,0,W,H);
-  gCtx.fillStyle='#04081a'; gCtx.fillRect(0,0,W,H);
-  var cx=W/2,cy=H-22,r=75;
-  // Track arc: full semicircle from π (left/0%) to 2π (right/100%)
+  if(!gCtx) return;
+  gCtx.clearRect(0,0,GW,GH);
+  gCtx.fillStyle='#04081a'; gCtx.fillRect(0,0,GW,GH);
+  var cx=GW/2, cy=GH-22, r=75;
+
+  // Track: full semicircle π → 2π
   gCtx.strokeStyle='#1a2a4a'; gCtx.lineWidth=14; gCtx.lineCap='round';
   gCtx.beginPath(); gCtx.arc(cx,cy,r,Math.PI,Math.PI*2); gCtx.stroke();
 
-  // Fill
+  // Filled arc — 0%=π(left) 50%=3π/2(top) 100%=2π(right)
   var col=pct>50?'#10b981':pct>10?'#f59e0b':'#ef4444';
-  // FIX: arc goes clockwise from π(left) through TOP(3π/2) to 2π(right)
-  // 0%→π(left) · 50%→3π/2(top/12-o'clock) · 100%→2π(right)
   var fA=Math.PI+Math.PI*clamp(pct,0,100)/100;
   gCtx.strokeStyle=col; gCtx.lineWidth=14;
   gCtx.shadowColor=col; gCtx.shadowBlur=16;
   gCtx.beginPath(); gCtx.arc(cx,cy,r,Math.PI,fA); gCtx.stroke();
   gCtx.shadowBlur=0;
 
-  // Needle angle matches fill arc endpoint exactly
+  // Needle — same angle as fill
   var nA=Math.PI+Math.PI*clamp(pct,0,100)/100;
   gCtx.strokeStyle='#fff'; gCtx.lineWidth=2.5; gCtx.lineCap='round';
   gCtx.beginPath();
   gCtx.moveTo(cx,cy);
   gCtx.lineTo(cx+(r-16)*Math.cos(nA),cy+(r-16)*Math.sin(nA));
   gCtx.stroke();
+  // Pivot dot
   gCtx.fillStyle='#fff';
   gCtx.beginPath(); gCtx.arc(cx,cy,5,0,Math.PI*2); gCtx.fill();
 
   // Tick labels
-  [0,25,50,75,100].forEach(function(pct){
-    var a=Math.PI+Math.PI*pct/100;
-    gCtx.strokeStyle='#475569'; gCtx.lineWidth=1.2;
-    gCtx.beginPath();
-    gCtx.moveTo(cx+(r+6)*Math.cos(a),cy+(r+6)*Math.sin(a));
-    gCtx.lineTo(cx+(r+14)*Math.cos(a),cy+(r+14)*Math.sin(a));
-    gCtx.stroke();
-    gCtx.fillStyle='#475569'; gCtx.font='8px Space Mono,monospace'; gCtx.textAlign='center';
-    var lx=cx+(r+24)*Math.cos(a), ly=cy+(r+24)*Math.sin(a)+3;
-    if(pct===50) ly-=8;
-    gCtx.fillText(pct+'%',lx,ly);
-  });
+  gCtx.fillStyle='#475569'; gCtx.font='9px Space Mono,monospace'; gCtx.textAlign='center';
+  gCtx.fillText('0%',cx-r-6,cy+14);
+  gCtx.fillText('100%',cx+r+6,cy+14);
 }
 
 function updateNISQ(){
@@ -1447,112 +1398,87 @@ function updateNISQ(){
     v.textContent='⚠ Moderate — noisy but usable with error mitigation';
   } else {
     v.style.cssText='background:rgba(239,68,68,.07);color:#ef4444;border:1px solid rgba(239,68,68,.28)';
-    v.textContent='✗ Too deep for NISQ. Reduce gates or use shallower ansatz.';
+    v.textContent='✗ Too deep for NISQ — reduce gates or use shallower ansatz';
   }
 }
-var _dNISQ=debounce(updateNISQ,16);
-$('sl-fid').addEventListener('input',_dNISQ);
-$('sl-gates').addEventListener('input',_dNISQ);
-$('sl-qubits').addEventListener('input',_dNISQ);
+var _dbNISQ=debounce(updateNISQ,16);
+['sl-fid','sl-gates','sl-qubits'].forEach(function(id){
+  $(id).addEventListener('input',_dbNISQ);
+});
 updateNISQ();
 
 // ═══════════════════════════════════════════════════════════════
 // 6-WEEK TRACKER + JOURNAL
 // ═══════════════════════════════════════════════════════════════
-// Auto-set week status based on today's date
-var today=new Date();
-function getWeekStatus(startStr,endStr){
-  var parts=startStr.replace('– ','- ').split(' - ');
-  // Parse start of week
-  var months={'Jan':0,'Feb':1,'Mar':2,'Apr':3,'May':4,'Jun':5,'Jul':6,'Aug':7,'Sep':8,'Oct':9,'Nov':10,'Dec':11};
-  var s=startStr.trim().replace('–','-');
-  // Simple: hardcode dates for the 6 weeks
-  return 'upcoming'; // fallback
-}
-var WEEK_DATES=[
-  {start:new Date(2026,2,23),end:new Date(2026,2,27)},
-  {start:new Date(2026,2,30),end:new Date(2026,3,3)},
-  {start:new Date(2026,3,6), end:new Date(2026,3,10)},
-  {start:new Date(2026,3,13),end:new Date(2026,3,17)},
-  {start:new Date(2026,3,20),end:new Date(2026,3,24)},
-  {start:new Date(2026,3,27),end:new Date(2026,4,1)},
-];
-function weekStatus(i){
-  var d=WEEK_DATES[i];
-  if(!d) return 'upcoming';
-  if(today>d.end) return 'done';
-  if(today>=d.start&&today<=d.end) return 'active';
-  return 'upcoming';
-}
 var weekData=[
-  {num:'Week 1',date:'Mar 23–27',status:weekStatus(0),title:'Quantum Fundamentals Refresher',
+  {num:'Week 1',date:'Mar 23–27',status:'active',title:'Quantum Fundamentals Refresher',
    tasks:['Attend live: Dr. Akash Malemath (WISER)','Attend live: Dr. Ritajit Majumdar (IBM)','Attend live: Dr. Bennett (US Naval Nuclear Lab)','Read playbook Sections 1, 2.1, 2.2, 2.4','Close Phase 1 gaps — superdense coding & teleportation','Journal: 1 concept + 1 open question per day','Post one question in live Q&A'],
    prompt:'How does entanglement enable quantum teleportation without violating the no-cloning theorem?'},
-  {num:'Week 2',date:'Mar 30 – Apr 3',status:weekStatus(1),title:'Your First Quantum Problem',
+  {num:'Week 2',date:'Mar 30 – Apr 3',status:'upcoming',title:'Your First Quantum Problem',
    tasks:['Attend live: Dr. Stefan Seeper (IQM)','Attend live: Dr. Richa Goel & Ananarayanan (IBM)','Install Qiskit: pip install qiskit qiskit-aer jupyter','Create IBM Quantum account at quantum.ibm.com','Rebuild Bell state circuit from scratch in Jupyter','Build GHZ state for 3, 4, and 5 qubits','Submit first Jupyter notebook'],
    prompt:'What CNOT operations physically implement entanglement in IBM superconducting hardware?'},
-  {num:'Week 3',date:'Apr 6–10',status:weekStatus(2),title:'Real Quantum Hardware & Noise',
-   tasks:['Attend live: Dr. Ricky Young (qBraid)','Attend live: Dr. Harshit Gupta (qBraid)','Create qBraid account at qbraid.com','Run first circuit on real quantum hardware via qBraid','Record actual T₁ and T₂ from hardware calibration','Add Aer depolarising noise model to Bell circuit','Compare statevector vs noisy simulator results'],
+  {num:'Week 3',date:'Apr 6–10',status:'upcoming',title:'Real Quantum Hardware & Noise',
+   tasks:['Attend live: Dr. Ricky Young (qBraid)','Attend live: Dr. Harshit Gupta (qBraid)','Create qBraid account at qbraid.com','Run first circuit on real quantum hardware via qBraid','Record actual T₁ and T₂ from hardware calibration data','Add Aer depolarising noise model to Bell circuit','Compare statevector vs noisy simulator outputs'],
    prompt:'How do T₁ and T₂ values from qBraid real hardware compare to the coherence calculator above?'},
-  {num:'Week 4',date:'Apr 13–17',status:weekStatus(3),title:'Basic Quantum Algorithms',
+  {num:'Week 4',date:'Apr 13–17',status:'upcoming',title:'Basic Quantum Algorithms',
    tasks:['Attend live: Dr. Jeremiah Wright (WISER)','Attend live: Dr. Erica Sturm (WISER)','Attend live: Dr. Haltmann (Fraunhofer ITWM)','Implement QFT from scratch (not from textbook)','Implement Grover\'s for 2-qubit search manually','Solve 2 Grover practice problems','Polish Grover notebook — comment every cell'],
-   prompt:'Grover\'s needs entangling operations. Which of the three entanglement approaches does IBM hardware use?'},
-  {num:'Week 5',date:'Apr 20–24',status:weekStatus(4),title:'Variational Quantum Algorithms',
-   tasks:['Attend live sessions: Fraunhofer ITWM','Attend live: Dr. Bharadwaj Mummaneni (Fraunhofer IAO)','Code VQE from scratch (H₂ molecule ground state)','Compare COBYLA vs SPSA — record convergence curves','Experiment with different ansatz designs','Understand why VQA targets NISQ constraints','Notebook with optimiser comparison analysis'],
+   prompt:'Grover\'s needs entangling operations — which entanglement approach does IBM hardware use?'},
+  {num:'Week 5',date:'Apr 20–24',status:'upcoming',title:'Variational Quantum Algorithms',
+   tasks:['Attend live sessions: Fraunhofer ITWM','Attend live: Dr. Bharadwaj Mummaneni (Fraunhofer IAO)','Code VQE from scratch (H₂ molecule ground state)','Compare COBYLA vs SPSA — record convergence curves','Experiment with different ansatz designs','Notebook with optimiser comparison analysis','Submit Week 5 notebook'],
    prompt:'Why is VQE designed for NISQ? What error-rate constraint drives its shallow circuit design?'},
-  {num:'Week 6',date:'Apr 27 – May 1',status:weekStatus(5),title:'VQA with Xanadu / PennyLane',
+  {num:'Week 6',date:'Apr 27 – May 1',status:'upcoming',title:'VQA with Xanadu / PennyLane',
    tasks:['Attend live: Dr. Catalina Albornoz (Xanadu)','Install PennyLane: pip install pennylane','Set up PennyLane default.qubit device','Implement QAOA on Max-Cut problem instance','Implement Hadamard transform and amplitude encoding','Polish all 6 notebooks and submit','Write 500-word reflection on 6-week journey'],
    prompt:'How does PennyLane\'s photonic backend differ from Qiskit\'s superconducting backend in qubit-type terms?'},
 ];
 
-// Load saved state
-var savedTasks={},savedJournal={};
-try{savedTasks=JSON.parse(localStorage.getItem('wiser-tasks')||'{}');}catch(e){}
-try{savedJournal=JSON.parse(localStorage.getItem('wiser-journal')||'{}');}catch(e){}
+var savedTasks={};
+try{ savedTasks=JSON.parse(localStorage.getItem('wiser-tasks')||'{}'); }catch(e){}
+var savedJournal={};
+try{ savedJournal=JSON.parse(localStorage.getItem('wiser-journal')||'{}'); }catch(e){}
 
-var totalTasks=0,doneTasks=0;
+var totalTasks=0, doneTasks=0;
 weekData.forEach(function(w){ totalTasks+=w.tasks.length; });
 
-function saveJournal(){ try{localStorage.setItem('wiser-journal',JSON.stringify(savedJournal));}catch(e){} }
+function saveJournal(){
+  try{ localStorage.setItem('wiser-journal',JSON.stringify(savedJournal)); }catch(e){}
+}
 function saveTasks(){
-  try{try{ localStorage.setItem('wiser-tasks',JSON.stringify(savedTasks)); }catch(e){}}catch(e){}
+  try{ localStorage.setItem('wiser-tasks',JSON.stringify(savedTasks)); }catch(e){}
   doneTasks=Object.values(savedTasks).filter(Boolean).length;
   $('prog-fill').style.width=Math.round(doneTasks/totalTasks*100)+'%';
 }
 
 var trackerContainer=$('tracker-container');
+
 weekData.forEach(function(week,wi){
   var card=document.createElement('div');
   card.className='week-card '+week.status;
 
   var tasksHTML=week.tasks.map(function(t,ti){
     var id='t-'+wi+'-'+ti;
-    var checked=savedTasks[id];
+    var checked=!!savedTasks[id];
     if(checked) doneTasks++;
     return '<li id="li-'+id+'" class="'+(checked?'checked':'')+'">'
       +'<span class="chk">'+(checked?'✓':'')+'</span>'+t+'</li>';
   }).join('');
 
-  var journalEntries=savedJournal[wi]||[];
-  var entriesHTML=journalEntries.map(function(e,ei){
+  var entries=savedJournal[wi]||[];
+  var entriesHTML=entries.map(function(e,ei){
     return '<div class="j-entry">'
       +'<div class="j-entry-header">'
       +'<span class="j-entry-date">'+e.date+'</span>'
-      +'<button type="button" class="j-entry-del" data-wi="'+wi+'" data-ei="'+ei+'">✕ delete</button>'
+      +'<button class="j-entry-del" data-wi="'+wi+'" data-ei="'+ei+'">✕</button>'
       +'</div>'
-      +'<div class="j-entry-text">'+e.text.replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</div>'
+      +'<div class="j-entry-text">'+e.text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</div>'
       +'</div>';
   }).join('');
 
-  var weekDone=week.tasks.filter(function(_,ti){return savedTasks['t-'+wi+'-'+ti];}).length;
-    var weekPct=Math.round(weekDone/week.tasks.length*100);
-    card.innerHTML=
+  card.innerHTML=
     '<div class="wk-header">'
       +'<span class="wk-num">'+week.num+'</span>'
       +'<span class="wk-title">'+week.title+'</span>'
-      +'<span style="margin-left:auto;font-family:var(--mono);font-size:.7rem;color:'+(weekPct===100?'var(--green)':weekPct>0?'var(--gold)':'var(--text3)')+'">'+weekPct+'%</span>'
       +'<span class="wk-date">'+week.date+'</span>'
-    +'<button class="mark-all-btn" style="margin-left:auto;background:none;border:1px solid var(--border);color:var(--text3);border-radius:4px;padding:.18rem .55rem;font-size:.68rem;cursor:pointer;font-family:var(--mono);white-space:nowrap">✓ Mark all</button>'
+      +'<button class="mark-all-btn" style="background:none;border:1px solid var(--border);color:var(--text3);border-radius:4px;padding:.18rem .55rem;font-size:.68rem;cursor:pointer;font-family:var(--mono);white-space:nowrap">✓ Mark all</button>'
     +'</div>'
     +'<ul class="checklist">'+tasksHTML+'</ul>'
     +'<div class="journal-section">'
@@ -1560,33 +1486,19 @@ weekData.forEach(function(week,wi){
       +'<div class="journal-prompt">'+week.prompt+'</div>'
       +'<div class="journal-entries" id="je-'+wi+'">'+entriesHTML+'</div>'
       +'<div class="journal-input-wrap">'
-        +'<textarea class="j-input" maxlength="4000" id="ji-'+wi+'" placeholder="Write your journal entry here… What did you learn? What clicked? What is still unclear?"></textarea>'
-        +'<button type="button" class="btn violet j-save" data-wi="'+wi+'">💾 Save Entry</button>'
+        +'<textarea class="j-input" id="ji-'+wi+'" maxlength="4000" placeholder="Write your journal entry here… What did you learn? What clicked? What is still unclear?"></textarea>'
+        +'<div style="text-align:right;font-family:var(--mono);font-size:.65rem;color:var(--text3);margin-top:.2rem"><span class="jcc" id="jcc-'+wi+'">0/4000</span></div>'
+        +'<button class="btn violet j-save" data-wi="'+wi+'">💾 Save Entry</button>'
       +'</div>'
     +'</div>';
 
   trackerContainer.appendChild(card);
 
-  // Mark all button for this week
-  var markAllBtn=card.querySelector('.mark-all-btn');
-  if(markAllBtn){
-    markAllBtn.addEventListener('click',function(e){
-      e.stopPropagation();
-      var allDone=week.tasks.every(function(_,ti){ return savedTasks['t-'+wi+'-'+ti]; });
-      week.tasks.forEach(function(_,ti){
-        var id='t-'+wi+'-'+ti;
-        var li=document.getElementById('li-'+id);
-        if(li){ li.classList.toggle('checked',!allDone); li.querySelector('.chk').textContent=!allDone?'✓':''; savedTasks[id]=!allDone; }
-      });
-      saveTasks();
-      markAllBtn.textContent=allDone?'✓ Mark all done':'✓ Unmark all';
-    });
-  }
-
   // Checklist click handlers
   week.tasks.forEach(function(_,ti){
     var id='t-'+wi+'-'+ti;
     var li=document.getElementById('li-'+id);
+    if(!li) return;
     li.addEventListener('click',function(){
       var now=!li.classList.contains('checked');
       li.classList.toggle('checked',now);
@@ -1595,94 +1507,119 @@ weekData.forEach(function(week,wi){
       saveTasks();
     });
   });
-});
 
-// Journal save + delete (event delegation on container)
-trackerContainer.addEventListener('input',function(e){
-  if(e.target.classList.contains('j-input')){
-    var cc=e.target.closest('.journal-input-wrap') && e.target.parentElement.querySelector('.jcc');
-    if(cc) cc.textContent=e.target.value.length+'/4000';
+  // Char counter for textarea
+  var ta=document.getElementById('ji-'+wi);
+  var jcc=document.getElementById('jcc-'+wi);
+  if(ta&&jcc){
+    ta.addEventListener('input',function(){
+      jcc.textContent=ta.value.length+'/4000';
+    });
   }
 });
+
+// Mark-all + journal save/delete via event delegation
 trackerContainer.addEventListener('click',function(e){
-  // Save entry
+  // Mark all toggle
+  if(e.target.classList.contains('mark-all-btn')){
+    var card=e.target.closest('.week-card');
+    var wi=Array.from(trackerContainer.children).indexOf(card);
+    if(wi<0) return;
+    var week=weekData[wi];
+    var allDone=week.tasks.every(function(_,ti){ return savedTasks['t-'+wi+'-'+ti]; });
+    week.tasks.forEach(function(_,ti){
+      var id='t-'+wi+'-'+ti;
+      var li=document.getElementById('li-'+id);
+      if(!li) return;
+      li.classList.toggle('checked',!allDone);
+      li.querySelector('.chk').textContent=!allDone?'✓':'';
+      savedTasks[id]=!allDone;
+    });
+    saveTasks();
+    return;
+  }
+  // Save journal entry
   if(e.target.classList.contains('j-save')){
     var wi=parseInt(e.target.getAttribute('data-wi'));
     var ta=document.getElementById('ji-'+wi);
-    var text=ta.value.trim();
+    var text=(ta?ta.value:'').trim();
     if(!text) return;
-    if(text.length>4000){alert('Journal entry is too long (max 4000 characters). Please shorten it.');return;}
     if(!savedJournal[wi]) savedJournal[wi]=[];
     var now=new Date();
-    var dateStr=now.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
-    savedJournal[wi].push({date:dateStr,text:text});
+    var ds=now.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})+' '+now.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+    savedJournal[wi].push({date:ds,text:text});
     saveJournal();
-    ta.value='';
+    if(ta){ ta.value=''; }
+    var jcc=document.getElementById('jcc-'+wi);
+    if(jcc) jcc.textContent='0/4000';
     rebuildEntries(wi);
+    return;
   }
-  // Delete entry
+  // Delete journal entry
   if(e.target.classList.contains('j-entry-del')){
     var wi=parseInt(e.target.getAttribute('data-wi'));
     var ei=parseInt(e.target.getAttribute('data-ei'));
-    savedJournal[wi].splice(ei,1);
+    if(savedJournal[wi]) savedJournal[wi].splice(ei,1);
     saveJournal();
     rebuildEntries(wi);
+    return;
   }
 });
 
 function rebuildEntries(wi){
   var entries=savedJournal[wi]||[];
   var el=document.getElementById('je-'+wi);
+  if(!el) return;
   el.innerHTML=entries.map(function(e,ei){
     return '<div class="j-entry">'
       +'<div class="j-entry-header">'
       +'<span class="j-entry-date">'+e.date+'</span>'
-      +'<button type="button" class="j-entry-del" data-wi="'+wi+'" data-ei="'+ei+'">✕ delete</button>'
+      +'<button class="j-entry-del" data-wi="'+wi+'" data-ei="'+ei+'">✕</button>'
       +'</div>'
-      +'<div class="j-entry-text">'+e.text.replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</div>'
+      +'<div class="j-entry-text">'+e.text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</div>'
       +'</div>';
   }).join('');
 }
 
-// Init progress bar
+// Init progress bar with loaded data
 saveTasks();
 
 // ═══════════════════════════════════════════════════════════════
 // GLOSSARY
 // ═══════════════════════════════════════════════════════════════
 var glossaryData=[
-  {term:'Qubit',def:'<strong>Quantum bit</strong> — two-level quantum system used to store and process quantum information. Unlike classical bits, can exist in superposition of |0⟩ and |1⟩ simultaneously.'},
-  {term:'Superposition',def:'Quantum state that is a linear combination of basis states: <strong>|ψ⟩ = α|0⟩ + β|1⟩</strong> where |α|²+|β|²=1. Upon measurement, collapses to one definite outcome.'},
-  {term:'Entanglement',def:'<strong>Multi-particle quantum state</strong> that cannot be written as a product of individual particle states. Measuring one qubit instantly determines the state of its entangled partner regardless of distance.'},
-  {term:'Bell state',def:'One of four <strong>maximally entangled two-qubit states</strong> (|Φ±⟩, |Ψ±⟩). Building blocks of quantum teleportation, superdense coding, and quantum cryptography.'},
-  {term:'GHZ state',def:'Greenberger-Horne-Zeilinger state — <strong>generalised Bell state for n&gt;2 qubits</strong>: (|00…0⟩+|11…1⟩)/√2. Also called Schrödinger cat state.'},
-  {term:'T₁',def:'<strong>Relaxation time</strong> — time for |1⟩ to decay to |0⟩. Classical lifetime of the qubit excited state. Sets an upper limit: T₂ ≤ 2T₁.'},
-  {term:'T₂',def:'<strong>Dephasing time</strong> — time for phase coherence between |0⟩ and |1⟩ to decay. Quantum lifetime. Your circuit must complete within T₂ or errors compound.'},
-  {term:'Wavefunction collapse',def:'Irreversible projection of a superposition state to a definite eigenstate upon measurement. Probability given by |amplitude|². Foundation of the no-cloning theorem.'},
-  {term:'Bloch sphere',def:'<strong>Geometric representation</strong> of a single-qubit state. Pure states map to the surface (radius=1). Poles = |0⟩ and |1⟩. Equator = equal superpositions. Phase encoded as angle φ.'},
-  {term:'DiVincenzo criteria',def:'Five requirements for a viable qubit: (1) initialise, (2) long coherence, (3) universal gates, (4) readout, (5) scalability. Proposed by D.P. DiVincenzo in 1998–2000.'},
-  {term:'Hadamard gate',def:'Single-qubit gate that creates equal superposition: <strong>H|0⟩ = (|0⟩+|1⟩)/√2</strong>. Matrix: [[1,1],[1,-1]]/√2. First gate in most quantum algorithms.'},
-  {term:'CNOT gate',def:'<strong>Controlled-NOT</strong> — two-qubit gate that flips target qubit if and only if control qubit is |1⟩. Combined with single-qubit gates, forms a universal gate set.'},
-  {term:'Rabi oscillation',def:'Coherent oscillation between |0⟩ and |1⟩ driven by a resonant electromagnetic field. Pulse duration, intensity, and phase control → arbitrary single-qubit rotation.'},
-  {term:'Rydberg blockade',def:'Strong dipole-dipole interaction between highly excited Rydberg atoms that prevents simultaneous excitation of neighbouring atoms. Used for <strong>entanglement in neutral atom qubits</strong>.'},
-  {term:'Quantum bus',def:'Auxiliary quantum system (phonon mode, microwave resonator) that mediates entangling interactions between qubits while keeping them otherwise isolated from each other.'},
-  {term:'NISQ',def:'<strong>Noisy Intermediate-Scale Quantum</strong> — coined by J. Preskill (2018). Devices with 50–1000+ qubits and no error correction. The current state of the art.'},
-  {term:'Logical qubit',def:'Qubit encoded across <strong>many physical qubits</strong> using quantum error correction. Protects against errors without directly measuring quantum state. Goal: one logical qubit from ~1,000 physical qubits.'},
-  {term:'Surface code',def:'Leading quantum error correction code using a <strong>2D grid of physical qubits</strong>. Topological error protection. Physical error threshold ~1%.'},
-  {term:'FTQC',def:'<strong>Fault-Tolerant Quantum Computing</strong> — quantum computing with full error correction. Requires millions of physical qubits. Long-term goal of the field.'},
-  {term:'VQE',def:'<strong>Variational Quantum Eigensolver</strong> — hybrid classical-quantum algorithm. Uses parameterised quantum circuit (ansatz) + classical optimiser to find ground state energy. WISER Week 5.'},
-  {term:'QAOA',def:'<strong>Quantum Approximate Optimisation Algorithm</strong> — variational algorithm for combinatorial optimisation (Max-Cut, scheduling). Uses alternating cost/mixer unitaries. WISER Week 6.'},
-  {term:'Ansatz',def:'Parameterised trial quantum state used in variational algorithms (VQE, QAOA). Classical optimiser tunes parameters to minimise cost function. Circuit depth determines NISQ viability.'},
-  {term:'QFT',def:'<strong>Quantum Fourier Transform</strong> — quantum analogue of FFT, uses O(n²) gates vs classical O(n·2ⁿ). Core subroutine of Shor\'s algorithm. WISER Week 4.'},
-  {term:'Decoherence',def:'Loss of quantum behaviour (superposition, entanglement) due to environmental interaction. Main enemy of quantum computing. Characterised by T₁ and T₂ timescales.'},
-  {term:'No-cloning theorem',def:'Quantum mechanical theorem: <strong>an unknown quantum state cannot be copied</strong>. Consequence of linearity of quantum mechanics. Why QEC uses entanglement, not copying.'},
-  {term:'Leakage error',def:'In two-level subset systems, quantum state propagating outside the qubit subspace. Cannot be corrected by standard QEC. Mitigated by erasure conversion techniques.'},
-  {term:'Aer',def:'IBM\'s quantum noise <strong>simulator for Qiskit</strong>. Models real hardware noise including depolarising, thermal relaxation, and readout errors. Used in WISER Week 3.'},
-  {term:'qBraid',def:'Cloud quantum computing platform providing access to multiple real quantum hardware backends. Used in WISER Week 3 for real hardware execution and noise characterisation.'},
-  {term:'PennyLane',def:'<strong>Xanadu\'s quantum ML framework</strong>. Differentiable quantum programming. Supports photonic, superconducting, and trapped-ion backends. Used in WISER Week 6.'},
-  {term:'AQV',def:'<strong>Amaravathi Quantum Valley</strong> — Andhra Pradesh government initiative. IBM + TCS deploying 156-qubit Heron processor there. India\'s first quantum ecosystem.'},
-  {term:'Transmon',def:'A type of superconducting qubit used by IBM and Google. Consists of a Josephson junction shunted by a large capacitor to reduce charge noise. Operates at ~15 milli-Kelvin.'},
-  {term:'Fidelity',def:'Measure of how close a quantum operation is to its ideal version. Gate fidelity >99.9% is state-of-the-art. <strong>Global circuit fidelity = (gate fidelity)^(number of gates)</strong> — falls exponentially.'},
+  {term:'Qubit',def:'<strong>Quantum bit</strong> — two-level system used for quantum information. Unlike a classical bit, can exist in superposition of |0⟩ and |1⟩.'},
+  {term:'Superposition',def:'<strong>|ψ⟩ = α|0⟩ + β|1⟩</strong> where |α|²+|β|²=1. The qubit is in multiple states simultaneously until measured.'},
+  {term:'Entanglement',def:'<strong>Multi-particle state</strong> that cannot be factored into individual particle states. Measuring one qubit instantly determines its partner.'},
+  {term:'Bell state',def:'One of four <strong>maximally entangled two-qubit states</strong>. Building blocks of teleportation, superdense coding, and QKD.'},
+  {term:'GHZ state',def:'(|00…0⟩+|11…1⟩)/√2 — generalised Bell state for n>2 qubits. Also called Schrödinger cat state.'},
+  {term:'T₁',def:'<strong>Relaxation time</strong> — time for |1⟩ to decay to |0⟩. Classical lifetime of the excited state. T₂ ≤ 2T₁ always.'},
+  {term:'T₂',def:'<strong>Dephasing time</strong> — time for phase coherence to decay. Quantum lifetime. Your circuit must complete within T₂.'},
+  {term:'Bloch sphere',def:'Geometric representation of a qubit. Pure states on surface (r=1). Poles = |0⟩, |1⟩. Equator = equal superpositions. φ = phase.'},
+  {term:'Wavefunction collapse',def:'Irreversible projection of superposition to a definite state upon measurement. Probability = |amplitude|².'},
+  {term:'DiVincenzo criteria',def:'Five requirements for a viable qubit: (1) init, (2) long coherence, (3) universal gates, (4) readout, (5) scalability.'},
+  {term:'Hadamard gate',def:'H|0⟩ = (|0⟩+|1⟩)/√2. Creates equal superposition. Matrix: [[1,1],[1,-1]]/√2. First gate in most algorithms.'},
+  {term:'CNOT gate',def:'<strong>Controlled-NOT</strong> — flips target qubit iff control is |1⟩. With single-qubit rotations: universal gate set.'},
+  {term:'Rabi oscillation',def:'Coherent qubit oscillation driven by resonant EM field. Pulse duration/phase → arbitrary single-qubit rotation.'},
+  {term:'Rydberg blockade',def:'Strong dipole interaction between excited Rydberg atoms. Prevents double-excitation. Used for entanglement in neutral atoms.'},
+  {term:'Quantum bus',def:'Auxiliary system (phonon mode, microwave resonator) mediating qubit-qubit interactions while keeping qubits isolated.'},
+  {term:'NISQ',def:'<strong>Noisy Intermediate-Scale Quantum</strong> (Preskill 2018). 50–1000+ qubits, no error correction. Current state of the art.'},
+  {term:'Logical qubit',def:'Qubit encoded across <strong>many physical qubits</strong> for error protection. Goal: one logical from ~1,000 physical at 0.1% error rate.'},
+  {term:'Surface code',def:'Leading QEC code using 2D grid of physical qubits. Error threshold ~1% per gate. Leading path to fault tolerance.'},
+  {term:'FTQC',def:'<strong>Fault-Tolerant Quantum Computing</strong> — full QEC, arbitrary algorithm depth. Requires millions of physical qubits.'},
+  {term:'VQE',def:'<strong>Variational Quantum Eigensolver</strong> — parameterised circuit + classical optimiser → ground state energy. WISER Week 5.'},
+  {term:'QAOA',def:'<strong>Quantum Approximate Optimisation Algorithm</strong> — variational approach for combinatorial problems. WISER Week 6.'},
+  {term:'Ansatz',def:'Parameterised trial quantum state in VQA. Optimiser tunes parameters to minimise cost function.'},
+  {term:'QFT',def:'<strong>Quantum Fourier Transform</strong> — O(n²) gates vs classical O(n·2ⁿ). Core subroutine of Shor\'s algorithm. WISER Week 4.'},
+  {term:'Decoherence',def:'Loss of quantum behaviour due to environmental interaction. Main enemy of quantum computing. Described by T₁ and T₂.'},
+  {term:'No-cloning theorem',def:'An unknown quantum state <strong>cannot be copied</strong>. Consequence of QM linearity. Why QEC uses entanglement, not copying.'},
+  {term:'Leakage error',def:'In two-level subset systems: state escapes qubit subspace. Cannot be corrected by standard QEC. Fixed by erasure conversion.'},
+  {term:'Aer',def:'IBM\'s <strong>quantum noise simulator</strong> for Qiskit. Models depolarising, thermal relaxation, readout errors. WISER Week 3.'},
+  {term:'qBraid',def:'Cloud platform for real quantum hardware access. Multiple backends. Used in WISER Week 3 for hardware execution.'},
+  {term:'PennyLane',def:'Xanadu\'s <strong>differentiable quantum ML framework</strong>. Photonic, superconducting, and trapped-ion backends. WISER Week 6.'},
+  {term:'Transmon',def:'Superconducting qubit type used by IBM and Google. Josephson junction + large shunt capacitor. Operates at ~15 milli-Kelvin.'},
+  {term:'Fidelity',def:'How close a quantum op is to its ideal. Gate fidelity >99.9% is state-of-art. Global fidelity = (per-gate fidelity)^(gates).'},
+  {term:'AQV',def:'<strong>Amaravathi Quantum Valley</strong> — Andhra Pradesh government quantum ecosystem. IBM+TCS deploying 156-qubit Heron processor.'},
 ];
 
 var gList=$('g-list'), gNone=$('g-none');
@@ -1697,42 +1634,31 @@ glossaryData.forEach(function(item){
 function doGlossarySearch(){
   var q=($('gsearch').value||'').toLowerCase().trim();
   var items=gList.querySelectorAll('.g-item');
-  var visible=0;
+  var vis=0;
   items.forEach(function(el){
-    var match=!q||el.getAttribute('data-search').includes(q);
-    el.classList.toggle('hidden',!match);
-    if(match) visible++;
+    var show=!q||el.getAttribute('data-search').includes(q);
+    el.classList.toggle('hidden',!show);
+    if(show) vis++;
   });
-  // Highlight match in term label
-  items.forEach(function(el){
-    var termEl=el.querySelector('.g-term');
-    if(!termEl) return;
-    var txt=termEl.textContent;
-    if(q&&!el.classList.contains('hidden')){
-      var i=txt.toLowerCase().indexOf(q);
-      if(i>=0) termEl.innerHTML=txt.slice(0,i)+'<mark style="background:rgba(0,229,255,.22);color:var(--cyan);border-radius:2px;padding:0 2px">'+txt.slice(i,i+q.length)+'</mark>'+txt.slice(i+q.length);
-    } else { termEl.innerHTML=txt; }
-  });
-  gNone.classList.toggle('hidden',visible>0||!q);
+  gNone.classList.toggle('hidden',vis>0||!q);
 }
 $('gsearch').addEventListener('input',doGlossarySearch);
-$('gsearch').addEventListener('keyup',doGlossarySearch);
 
 // ═══════════════════════════════════════════════════════════════
 // ROADMAP TIMELINE
 // ═══════════════════════════════════════════════════════════════
 var tlData=[
-  {year:'1994',title:"Shor's Algorithm",desc:"Peter Shor publishes polynomial-time quantum factoring algorithm. Ignites the global quantum hardware race.",col:'#f97316'},
-  {year:'1996',title:"Grover's Algorithm",desc:"Quadratic speedup for unstructured search. √N vs classical N. Core of WISER Week 4.",col:'#f97316'},
-  {year:'2000',title:'DiVincenzo Criteria',desc:'Five requirements for a viable qubit formalised. Still the benchmark two decades later. Section 3 of this playbook.',col:'#a855f7'},
-  {year:'2019',title:'Quantum Supremacy (Google)',desc:"Sycamore 53-qubit processor completes a sampling task in 200 seconds vs ~10,000 years classically.",col:'#00e5ff'},
-  {year:'2020',title:'Photonic Advantage (USTC)',desc:"China's Jiuzhang photonic system demonstrates quantum computational advantage using boson sampling.",col:'#00e5ff'},
+  {year:'1994',title:"Shor's Algorithm",desc:"Peter Shor publishes polynomial-time quantum factoring — ignites the global quantum hardware race.",col:'#f97316'},
+  {year:'1996',title:"Grover's Algorithm",desc:"Quadratic speedup for unstructured search: √N vs classical N. Core of WISER Week 4.",col:'#f97316'},
+  {year:'2000',title:'DiVincenzo Criteria',desc:'Five requirements for a viable qubit formalised. Still the benchmark today. Section 3 of this playbook.',col:'#a855f7'},
+  {year:'2019',title:'Quantum Supremacy (Google)',desc:"Sycamore 53-qubit processor: sampling task in 200s vs ~10,000 years classically.",col:'#00e5ff'},
+  {year:'2020',title:'Photonic Advantage (USTC)',desc:"China's Jiuzhang photonic system: quantum computational advantage via boson sampling.",col:'#00e5ff'},
   {year:'2022–23',title:'Logical Qubit Demonstrations',desc:'Google, Harvard/QuEra, Quantinuum all demonstrate early logical qubit operations and error suppression.',col:'#10b981'},
-  {year:'2024',title:'IBM Heron (156 qubits)',desc:'IBM deploys Heron processor. IBM + TCS bringing same technology to Amaravathi Quantum Valley, Andhra Pradesh.',col:'#10b981'},
-  {year:'Mar 2026',title:'YOU ARE HERE — WISER Phase 2',desc:'One of 3,000 selected from 62,000+ learners. 6 weeks: Qiskit, real hardware, Grover\'s, VQA, QAOA. Goal: Top 100.',col:'#f59e0b',highlight:true},
-  {year:'Jun 2026',title:'WISER Global Summer School (Goal)',desc:'Top 100 Phase 2 performers. 8 weeks. Quantum + AI + Optimisation. Mentorship + $25,000 in-kind value.',col:'#f59e0b'},
-  {year:'~2028',title:'Early Fault-Tolerant Experiments',desc:'First demonstrations of fault-tolerant algorithms on logical qubits at useful scale.',col:'#94a3b8'},
-  {year:'~2030+',title:'Fault-Tolerant Quantum Computers',desc:'Millions of physical qubits. Shor\'s algorithm on RSA-2048 feasible. Quantum integration architects in extreme demand.',col:'#94a3b8'},
+  {year:'2024',title:'IBM Heron (156 qubits)',desc:'IBM deploys Heron processor. IBM+TCS bringing same technology to Amaravathi Quantum Valley, Andhra Pradesh.',col:'#10b981'},
+  {year:'Mar 2026',title:'YOU ARE HERE — WISER Phase 2',desc:"One of 3,000 selected from 62,000+ learners. 6 weeks: Qiskit, real hardware, Grover's, VQA, QAOA. Goal: Top 100.",col:'#f59e0b',highlight:true},
+  {year:'Jun 2026',title:'WISER Global Summer School (Goal)',desc:'Top 100 Phase 2 performers. 8 weeks. Quantum + AI + Optimisation. Mentorship + $25,000 in-kind.',col:'#f59e0b'},
+  {year:'~2028',title:'Early Fault-Tolerant Experiments',desc:'First fault-tolerant algorithms on logical qubits at useful scale.',col:'#94a3b8'},
+  {year:'~2030+',title:'Fault-Tolerant Quantum Computers',desc:"Millions of physical qubits. Shor's on RSA-2048 feasible. Quantum integration architects in extreme demand.",col:'#94a3b8'},
 ];
 
 var tlEl=$('tl-container');
@@ -1740,35 +1666,33 @@ tlData.forEach(function(item){
   var div=document.createElement('div');
   div.className='tl-item';
   div.innerHTML=
-    '<div class="tl-dot" style="background:'+(item.highlight?item.col:'transparent')+';border-color:'+item.col+';'+(item.highlight?'box-shadow:0 0 10px '+item.col+';':'')+'"></div>'
+    '<div class="tl-dot" style="background:'+(item.highlight?item.col:'transparent')+
+    ';border-color:'+item.col+(item.highlight?';box-shadow:0 0 10px '+item.col:'')+'">'
+    +'</div>'
     +'<div class="tl-year" style="color:'+item.col+'">'+item.year+'</div>'
     +'<div class="tl-title"'+(item.highlight?' style="color:'+item.col+'"':'')+'>'+item.title+'</div>'
     +'<div class="tl-desc">'+item.desc+'</div>';
   tlEl.appendChild(div);
 });
 
-// (old conflicting touch handlers removed)
-
-// ── MOBILE FULLSCREEN NAV ────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════
+// MOBILE FULLSCREEN NAV
+// ═══════════════════════════════════════════════════════════════
 (function(){
-  var mobNav=document.getElementById('mob-nav');
-  var menuBtn=document.getElementById('menu-btn');
-  var closeBtn=document.getElementById('close-mob');
+  var mobNav=$('mob-nav');
+  var menuBtn=$('menu-btn');
+  var closeBtn=$('close-mob');
   if(!mobNav||!menuBtn||!closeBtn) return;
 
   function openMob(){ mobNav.classList.add('open'); mobNav.scrollTop=0; }
   function closeMob(){ mobNav.classList.remove('open'); }
 
-  menuBtn.addEventListener('click', openMob);
-  closeBtn.addEventListener('click', closeMob);
+  menuBtn.addEventListener('click',openMob);
+  closeBtn.addEventListener('click',closeMob);
 
-  // Tap any link: close nav then scroll to section
   mobNav.querySelectorAll('a[href^="#"]').forEach(function(a){
     a.addEventListener('click',function(e){
       e.preventDefault();
-      // Set active state
-      mobNav.querySelectorAll('a').forEach(function(x){x.style.color='';x.style.borderLeftColor='';});
-      a.style.color='var(--cyan)'; a.style.borderLeftColor='var(--cyan)';
       var tgt=document.querySelector(a.getAttribute('href'));
       closeMob();
       if(tgt){
@@ -1779,20 +1703,21 @@ tlData.forEach(function(item){
     });
   });
 
-  // Escape key closes
-  document.addEventListener('keydown',function(e){if(e.key==='Escape')closeMob();});
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape') closeMob(); });
 
   // Swipe right from left edge to open
   var sx=0,sy=0;
-  document.addEventListener('touchstart',function(e){sx=e.touches[0].clientX;sy=e.touches[0].clientY;},{passive:true});
+  document.addEventListener('touchstart',function(e){ sx=e.touches[0].clientX; sy=e.touches[0].clientY; },{passive:true});
   document.addEventListener('touchend',function(e){
-    if(mobNav.classList.contains('open'))return;
-    var dx=e.changedTouches[0].clientX-sx,dy=Math.abs(e.changedTouches[0].clientY-sy);
+    if(mobNav.classList.contains('open')) return;
+    var dx=e.changedTouches[0].clientX-sx;
+    var dy=Math.abs(e.changedTouches[0].clientY-sy);
     if(sx<30&&dx>55&&dy<80) openMob();
   },{passive:true});
 })();
 
 })(); // end IIFE
+
 </script>
 </body>
 </html>
