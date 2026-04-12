@@ -1,0 +1,500 @@
+python3 << 'PYEOF'
+with open('/home/claude/quantum_playbook_v2.html') as f:
+    html = f.read()
+
+# ── NEW CONTENT: 4 resource sections + 4 quizzes ───────────────
+
+new_sections = '''
+<!-- BONUS 5: Brian McDermott (Naval Nuclear Lab) - Quantum Technologies Overview -->
+<section id="bonus5" class="reveal">
+  <div class="sec-tag">Week 1 · Session 3 · Brian McDermott (US Naval Nuclear Laboratory)</div>
+  <h2>Overview of Quantum Technologies &amp; Applications</h2>
+  <p style="font-size:.85rem;color:var(--text2);margin-bottom:1.2rem">
+    Speaker: Brian R&amp;D Engineering, Naval Nuclear Laboratory ·
+    <a href="https://www.youtube.com/watch?v=fFa_6pUPHUA" target="_blank" rel="noopener" style="color:var(--cyan)">▶ Watch on YouTube ↗</a>
+  </p>
+
+  <h3>1 · What Is a Quantum Technology?</h3>
+  <p>Any technology that uses quantum mechanics to <strong>generate/store/convert energy</strong> OR <strong>measure/process/transmit information</strong>. Energy and information are fundamentally the same thing.</p>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Existing (1st Gen)</th><th>Quantum Principle</th><th>Next-Gen (Maximise Coherence)</th></tr></thead>
+    <tbody>
+      <tr><td class="tk">Lasers</td><td class="tv">Coherence</td><td class="tv" rowspan="5">Quantum Computing · Quantum Sensing · Quantum Networking</td></tr>
+      <tr><td class="tk">MRI machines</td><td class="tv">Nuclear spin states</td></tr>
+      <tr><td class="tk">Solar cells</td><td class="tv">Photovoltaic quantum interaction</td></tr>
+      <tr><td class="tk">Superconductors</td><td class="tv">Cooper pair electron pairing</td></tr>
+      <tr><td class="tk">Nuclear energy</td><td class="tv">Fission/fusion reactions</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3 class="mt2">2 · Why Quantum Computing?</h3>
+  <p>Computing is increasingly heterogeneous — CPUs gave way to GPUs, now QPUs. Quantum is a <strong>specialised accelerator</strong> for physics-flavoured problems. Shor's Algorithm (1994) showed quantum can factor integers efficiently — threatening RSA encryption — sparking the hardware race.</p>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Complexity</th><th>Scaling</th><th>Quantum Helps?</th></tr></thead>
+    <tbody>
+      <tr><td class="tk">O(log n)</td><td class="tv">Binary search</td><td><span class="badge green">No need</span></td></tr>
+      <tr><td class="tk">O(n²)</td><td class="tv">Nested loops</td><td><span class="badge gold">Sometimes</span></td></tr>
+      <tr><td class="tk">O(2ⁿ)</td><td class="tv">Exponential — classical stalls</td><td><span class="badge cyan">Yes — primary target</span></td></tr>
+      <tr><td class="tk">O(n!)</td><td class="tv">Factorial — intractable</td><td><span class="badge cyan">Yes</span></td></tr>
+    </tbody>
+  </table></div>
+
+  <h3 class="mt2">3 · Three Strategies to Extract Useful Answers</h3>
+  <p>n qubits encode 2ⁿ states but readout collapses back to n bits. Three strategies bridge this:</p>
+  <div class="g2">
+    <div class="panel cyan"><div style="font-family:var(--mono);font-size:.68rem;color:var(--cyan);margin-bottom:.4rem">STRATEGY 1</div><p style="font-size:.83rem;margin:0"><strong>Quantum interference</strong> — amplify correct-answer probability peaks (Grover's, Shor's)</p></div>
+    <div class="panel violet"><div style="font-family:var(--mono);font-size:.68rem;color:var(--violet2);margin-bottom:.4rem">STRATEGY 2</div><p style="font-size:.83rem;margin:0"><strong>Eigenvalue format</strong> — encode answer as an eigenvalue (Quantum Phase Estimation)</p></div>
+    <div class="panel gold"><div style="font-family:var(--mono);font-size:.68rem;color:var(--gold);margin-bottom:.4rem">STRATEGY 3</div><p style="font-size:.83rem;margin:0"><strong>Expectation values</strong> — format answer as ⟨ψ|H|ψ⟩ (VQE, material science observables)</p></div>
+  </div>
+
+  <h3 class="mt2">4 · DiVincenzo Criteria + Engineering Desiderata</h3>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>#</th><th>DiVincenzo Criterion</th><th>Engineering "Unicorn" Desiderata</th></tr></thead>
+    <tbody>
+      <tr><td><span class="badge cyan">1</span></td><td class="tv">≥2 well-characterised quantum states</td><td class="tv" rowspan="5">Compatible with existing infrastructure · Easy to program · High performance (low latency, low energy) · Transparent &amp; accessible · Low cost</td></tr>
+      <tr><td><span class="badge cyan">2</span></td><td class="tv">Reliable initialisation to |0⟩</td></tr>
+      <tr><td><span class="badge cyan">3</span></td><td class="tv">Universal gate control</td></tr>
+      <tr><td><span class="badge cyan">4</span></td><td class="tv">Controlled readout/measurement</td></tr>
+      <tr><td><span class="badge cyan">5</span></td><td class="tv">Long coherence time (T₁)</td></tr>
+      <tr><td><span class="badge violet">6</span></td><td class="tv">(Networking) Convert stationary → flying qubits</td><td class="tv">Enables quantum internet</td></tr>
+      <tr><td><span class="badge violet">7</span></td><td class="tv">(Networking) Transmit flying qubits between nodes</td><td class="tv">Quantum key distribution, teleportation</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3 class="mt2">5 · Four Hardware Generations</h3>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Gen</th><th>Name</th><th>Error Approach</th><th>Examples</th></tr></thead>
+    <tbody>
+      <tr><td><span class="badge orange">1</span></td><td class="tk">Early experiments</td><td class="tv">Retired/repurposed</td><td class="tv">NMR, D-Wave annealing</td></tr>
+      <tr><td><span class="badge gold">2</span></td><td class="tk">Naked qubits</td><td class="tv">High error correction overhead</td><td class="tv">Superconducting, trapped ions, neutral atoms</td></tr>
+      <tr><td><span class="badge cyan">3</span></td><td class="tk">Engineered error protection</td><td class="tv">Device-level features reduce overhead</td><td class="tv">Dual-rail, cat qubits, fluxonium</td></tr>
+      <tr><td><span class="badge green">4</span></td><td class="tk">Intrinsic error protection</td><td class="tv">Material-level resistance to errors</td><td class="tv">Topological qubits (Microsoft Majorana)</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3 class="mt2">6 · Three Models of Computation</h3>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Model</th><th>State Space</th><th>Readout</th></tr></thead>
+    <tbody>
+      <tr><td class="tk">Digital (classical)</td><td class="tv">Only basis states (0 or 1)</td><td class="tv">Digital value</td></tr>
+      <tr><td class="tk">Probabilistic</td><td class="tv">Convex combinations of real-valued states</td><td class="tv">Digital value</td></tr>
+      <tr><td class="tk" style="color:var(--cyan)">Quantum</td><td class="tv">Linear combinations of <em>complex-valued</em> states (Hilbert space)</td><td class="tv">Digital value</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="callout cyan">
+    <div class="ci">📚</div>
+    <div><h4>Recommended References (cited in lecture)</h4>
+    <p><strong>Feynman's Lectures on Computation</strong> — origin of quantum computing as a concept · <strong>Quantum Mechanics for Scientists and Engineers</strong> — rigorous mathematical treatment · <strong>Quantum Mechanics: The Theoretical Minimum</strong> (Susskind) — minimum math needed for QC</p></div>
+  </div>
+</section>
+
+<!-- BONUS 6: Stefan Seegerer (IQM) - Week 2 Two-Qubit Gates & GHZ -->
+<section id="bonus6" class="reveal">
+  <div class="sec-tag">Week 2 · Session 1 · Dr. Stefan Seegerer (IQM Quantum Computers)</div>
+  <h2>Two-Qubit Gates, GHZ States &amp; Entanglement</h2>
+  <p style="font-size:.85rem;color:var(--text2);margin-bottom:1.2rem">
+    Speaker: Prof. Stefan Seegerer, Professor HCI Hochschule Landshut &amp; Former Head of Product, IQM Quantum Computers ·
+    <a href="https://www.youtube.com/watch?v=y4ct2rK2dnc" target="_blank" rel="noopener" style="color:var(--cyan)">▶ Watch on YouTube ↗</a>
+  </p>
+
+  <h3>1 · Multi-Qubit State Space — Exponential Scaling</h3>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Qubits (n)</th><th>Basis States (2ⁿ)</th><th>Classical Comparison</th></tr></thead>
+    <tbody>
+      <tr><td class="tk">1</td><td class="tv">2 (|0⟩, |1⟩)</td><td class="tv">1 coin</td></tr>
+      <tr><td class="tk">2</td><td class="tv">4 (|00⟩, |01⟩, |10⟩, |11⟩)</td><td class="tv">2 coins</td></tr>
+      <tr><td class="tk">50</td><td class="tv">~10¹⁵ (1 quadrillion)</td><td class="tv">Classical supercomputers hit wall</td></tr>
+      <tr><td class="tk">300</td><td class="tv">&gt; atoms in observable universe</td><td class="tv">Classically unrepresentable</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3 class="mt2">2 · Tensor Product — Multi-Qubit Mathematics</h3>
+  <p>Two-qubit systems are described using the <strong>tensor product</strong> (⊗). A 2-qubit state is a 4-component vector; 2-qubit gates are 4×4 matrices. For a product state |+⟩⊗|0⟩, the qubits are independent. For a Bell state, they cannot be separated.</p>
+
+  <h3 class="mt2">3 · The CNOT Gate &amp; Creating Entanglement</h3>
+  <p>H gate on q₀ → CNOT(q₀→q₁): when control is in superposition, output is the Bell state (|00⟩+|11⟩)/√2. This proves entanglement — measuring one qubit determines the other.</p>
+  <div class="callout violet">
+    <div class="ci">✓</div>
+    <div><h4>Proof That Bell State Cannot Be Factored</h4>
+    <p>Assume |Φ+⟩ = (a|0⟩+b|1⟩)⊗(c|0⟩+d|1⟩). Expanding gives AC|00⟩+AD|01⟩+BC|10⟩+BD|11⟩. For Bell state: AD=0 and BD=1/√2 → if D=0 then BD=0 ≠ 1/√2. Contradiction. <strong>∴ Bell state is entangled — cannot be written as product of two single-qubit states.</strong></p></div>
+  </div>
+
+  <h3 class="mt2">4 · Key Two-Qubit Gates</h3>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Gate</th><th>Action</th><th>Key Fact</th></tr></thead>
+    <tbody>
+      <tr><td class="tk">CNOT (CX)</td><td class="tv">Flip target if control = |1⟩</td><td class="tv">Most important 2-qubit gate for entanglement</td></tr>
+      <tr><td class="tk">SWAP</td><td class="tv">Exchange states of two qubits</td><td class="tv">SWAP = 3 alternating CNOTs — very expensive</td></tr>
+      <tr><td class="tk">CZ (CSET)</td><td class="tv">Apply Z to target if control = |1⟩</td><td class="tv">IQM native gate — CNOT expressed using CZ</td></tr>
+      <tr><td class="tk">Toffoli (CCX)</td><td class="tv">Flip target if BOTH controls = |1⟩</td><td class="tv">Universal classical logic on quantum hardware</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="callout cyan">
+    <div class="ci">🔑</div>
+    <div><h4>Universal Decomposition Theorem</h4>
+    <p><strong>Any N-qubit unitary gate can be decomposed into single-qubit gates + CNOT gates.</strong> (Nielsen-Chuang) This is why CNOT is the fundamental building block of universal quantum computation.</p></div>
+  </div>
+
+  <h3 class="mt2">5 · GHZ States — Generalising Bell States to n Qubits</h3>
+  <p>Named after Greenberger, Horne &amp; Zeilinger (Nobel laureates). GHZ state for n qubits: <code>(|00...0⟩ + |11...1⟩)/√2</code> — only all-zeros and all-ones, each 50%.</p>
+  <div class="panel" style="border-color:rgba(0,229,255,.28)">
+    <div style="font-family:var(--mono);font-size:.72rem;color:var(--cyan);margin-bottom:.5rem">QISKIT: n-QUBIT GHZ CIRCUIT</div>
+    <pre style="font-family:var(--mono);font-size:.82rem;color:var(--text2);white-space:pre-wrap;margin:0">from qiskit import QuantumCircuit
+
+def ghz(n):
+    qc = QuantumCircuit(n)
+    qc.h(0)                        # Hadamard on first qubit
+    for i in range(1, n):
+        qc.cx(0, i)                # CNOT from qubit 0 to all others
+    return qc
+
+# Result: 50% |00000...⟩, 50% |11111...⟩</pre>
+  </div>
+
+  <h3 class="mt2">6 · Running on Real Hardware — Transpilation &amp; Connectivity</h3>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Concept</th><th>Explanation</th></tr></thead>
+    <tbody>
+      <tr><td class="tk">Transpilation</td><td class="tv">CNOT decomposed into native IQM gates: CZ + single-qubit rotations (Rz, Ry)</td></tr>
+      <tr><td class="tk">Qubit connectivity</td><td class="tv">QPU has limited connectivity — non-adjacent qubits need SWAP routing (3 CNOTs each)</td></tr>
+      <tr><td class="tk">Optimised GHZ</td><td class="tv">Use chain CNOTs through neighbours (not all from qubit 0) → reduces SWAP overhead</td></tr>
+      <tr><td class="tk">Fidelity threshold</td><td class="tv">F &gt; 0.5 → genuine multi-qubit entanglement certified. Achieved F=0.72 for 9-qubit GHZ on real hardware</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3 class="mt2">7 · Universal Gate Sets</h3>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Gate Set</th><th>Components</th><th>Used By</th></tr></thead>
+    <tbody>
+      <tr><td class="tk">IQM native</td><td class="tv">CZ + Rz + Ry</td><td class="tv">IQM Garnet, IQM Resonance</td></tr>
+      <tr><td class="tk">IBM native</td><td class="tv">ECR + Rz + √X</td><td class="tv">IBM Quantum systems</td></tr>
+      <tr><td class="tk">Standard textbook</td><td class="tv">H + S + T + CNOT</td><td class="tv">Algorithms, textbooks</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- BONUS 7: Qiskit Sessions (Siddharth Golecha + Janani Ananthanarayanan) -->
+<section id="bonus7" class="reveal">
+  <div class="sec-tag">Week 2 · Sessions 2&amp;3 · IBM Quantum (Golecha &amp; Ananthanarayanan)</div>
+  <h2>Introduction to IBM Qiskit — Hands-On Programming</h2>
+  <p style="font-size:.85rem;color:var(--text2);margin-bottom:1.2rem">
+    Speakers: Siddharth Golecha (IBM Quantum Support Engineer) &amp; Janani Ananthanarayanan (IBM Quantum Engineer, Bangalore) ·
+    <a href="https://www.youtube.com/watch?v=Mp3GeDpQxIY" target="_blank" rel="noopener" style="color:var(--cyan)">▶ Session 1 ↗</a> ·
+    <a href="https://www.youtube.com/watch?v=oHVOQrxxA5s" target="_blank" rel="noopener" style="color:var(--cyan)">▶ Session 2 ↗</a>
+  </p>
+
+  <h3>1 · Qiskit Ecosystem</h3>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Component</th><th>Role</th><th>Install</th></tr></thead>
+    <tbody>
+      <tr><td class="tk">Qiskit SDK</td><td class="tv">Core open-source library. Python interface, Rust-based transpiler</td><td><code>pip install qiskit</code></td></tr>
+      <tr><td class="tk">Qiskit Runtime</td><td class="tv">IBM Cloud service — interface to run jobs on real IBM Quantum hardware</td><td><code>pip install qiskit-ibm-runtime</code></td></tr>
+      <tr><td class="tk">Qiskit Aer</td><td class="tv">High-performance local simulator with configurable noise models</td><td><code>pip install qiskit-aer</code></td></tr>
+      <tr><td class="tk">pylatexenc</td><td class="tv">Required for <code>circuit.draw('mpl')</code> to render — often forgotten!</td><td><code>pip install pylatexenc</code></td></tr>
+    </tbody>
+  </table></div>
+
+  <h3 class="mt2">2 · Standard Quantum Workflow (4 Steps)</h3>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Step</th><th>Action</th><th>Tool</th></tr></thead>
+    <tbody>
+      <tr><td><span class="badge cyan">1</span></td><td class="tk">Create a Quantum Circuit</td><td class="tv"><code>QuantumCircuit(n)</code></td></tr>
+      <tr><td><span class="badge cyan">2</span></td><td class="tk">Select a Backend (simulator or QPU)</td><td class="tv"><code>AerSimulator()</code> or <code>QiskitRuntimeService</code></td></tr>
+      <tr><td><span class="badge cyan">3</span></td><td class="tk">Probe quantum state (sample or expectation value)</td><td class="tv"><code>SamplerV2</code> or <code>EstimatorV2</code></td></tr>
+      <tr><td><span class="badge cyan">4</span></td><td class="tk">Post-process and visualise</td><td class="tv"><code>plot_histogram(counts)</code></td></tr>
+    </tbody>
+  </table></div>
+
+  <h3 class="mt2">3 · Gate Reference</h3>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Gate</th><th>Qiskit Call</th><th>Action</th><th>Type</th></tr></thead>
+    <tbody>
+      <tr><td class="tk">Hadamard H</td><td><code>qc.h(0)</code></td><td class="tv">|0⟩→(|0⟩+|1⟩)/√2 — equal superposition</td><td><span class="badge cyan">Clifford</span></td></tr>
+      <tr><td class="tk">Pauli X</td><td><code>qc.x(0)</code></td><td class="tv">|0⟩↔|1⟩ bit flip (quantum NOT)</td><td><span class="badge cyan">Clifford</span></td></tr>
+      <tr><td class="tk">Pauli Y</td><td><code>qc.y(0)</code></td><td class="tv">Bit flip + phase (−i factor)</td><td><span class="badge cyan">Clifford</span></td></tr>
+      <tr><td class="tk">Pauli Z</td><td><code>qc.z(0)</code></td><td class="tv">|1⟩→−|1⟩ phase flip only</td><td><span class="badge cyan">Clifford</span></td></tr>
+      <tr><td class="tk">S gate</td><td><code>qc.s(0)</code></td><td class="tv">π/2 phase rotation (√Z)</td><td><span class="badge cyan">Clifford</span></td></tr>
+      <tr><td class="tk">T gate</td><td><code>qc.t(0)</code></td><td class="tv">π/4 phase rotation (√S, ⁴√Z)</td><td><span class="badge violet">Non-Clifford</span></td></tr>
+      <tr><td class="tk">Rx/Ry/Rz(θ)</td><td><code>qc.ry(theta,0)</code></td><td class="tv">Arbitrary rotation — used in VQE/QAOA</td><td><span class="badge violet">Non-Clifford</span></td></tr>
+      <tr><td class="tk">CNOT (CX)</td><td><code>qc.cx(0,1)</code></td><td class="tv">Flip target if control=|1⟩</td><td><span class="badge cyan">Clifford</span></td></tr>
+      <tr><td class="tk">Toffoli (CCX)</td><td><code>qc.ccx(0,1,2)</code></td><td class="tv">Flip target if BOTH controls=|1⟩</td><td><span class="badge violet">Non-Clifford</span></td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="callout gold">
+    <div class="ci">💡</div>
+    <div><h4>Clifford vs Non-Clifford Gates</h4>
+    <p><strong>Clifford gates</strong> (H, X, Y, Z, S, CNOT, SWAP) can be <em>efficiently simulated on classical computers</em> (Gottesman-Knill Theorem). <strong>Non-Clifford gates</strong> (T, Rx, Ry, Rz, Toffoli) are required for true quantum advantage and cannot be efficiently classically simulated. Parameterised circuits for VQE/QAOA use non-Clifford rotational gates.</p></div>
+  </div>
+
+  <h3 class="mt2">4 · Essential Qiskit Code Patterns</h3>
+  <div class="panel" style="border-color:rgba(0,229,255,.28)">
+    <pre style="font-family:var(--mono);font-size:.8rem;color:var(--text2);white-space:pre-wrap;line-height:1.7;margin:0"># 1. BUILD A BELL STATE
+from qiskit import QuantumCircuit
+qc = QuantumCircuit(2)
+qc.h(0)         # superposition
+qc.cx(0, 1)     # entanglement
+qc.barrier()    # protect from compiler optimisation
+qc.measure_all()
+qc.draw('mpl')  # requires pylatexenc
+
+# 2. SIMULATE (shot-based counts)
+from qiskit_aer import AerSimulator
+sim = AerSimulator()
+counts = sim.run(qc, shots=1024).result().get_counts()
+# Expected: {'00': ~512, '11': ~512}
+
+# 3. STATEVECTOR (exact amplitudes)
+from qiskit_aer import AerSimulator
+sv_sim = AerSimulator(method='statevector')
+# Use without measurements + save_statevector()
+
+# 4. PARAMETERISED CIRCUIT (for VQE/QAOA)
+from qiskit.circuit import Parameter
+theta = Parameter('theta')
+qc = QuantumCircuit(1)
+qc.ry(theta, 0)
+bound = qc.assign_parameters({theta: 1.5707})  # π/2
+
+# 5. n-QUBIT GHZ (scalable)
+def n_ghz(n):
+    qc = QuantumCircuit(n)
+    qc.h(0)
+    for i in range(1, n): qc.cx(0, i)
+    return qc
+
+# 6. CIRCUIT LIBRARY (don't rebuild from scratch)
+from qiskit.circuit.library import QFT
+qft_3 = QFT(3)   # 3-qubit Quantum Fourier Transform</pre>
+  </div>
+
+  <h3 class="mt2">5 · Sampler vs Estimator Primitives</h3>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Primitive</th><th>Returns</th><th>Use For</th><th>Circuit Needs</th></tr></thead>
+    <tbody>
+      <tr><td class="tk" style="color:var(--cyan)">SamplerV2</td><td class="tv">Measurement counts (bitstrings + frequencies)</td><td class="tv">Grover's, QFT, general sampling</td><td class="tv">Must include <code>measure_all()</code></td></tr>
+      <tr><td class="tk" style="color:var(--violet2)">EstimatorV2</td><td class="tv">Expectation value ⟨ψ|H|ψ⟩</td><td class="tv">VQE, QAOA, quantum chemistry</td><td class="tv">No measurement gates — Estimator handles it</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3 class="mt2">6 · Important Notes</h3>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Point</th><th>Detail</th></tr></thead>
+    <tbody>
+      <tr><td class="tk">Barriers</td><td class="tv"><code>qc.barrier()</code> prevents the compiler from merging/cancelling gates across it. Not cosmetic — critical for noise benchmarking (prevents X·X=I cancellation)</td></tr>
+      <tr><td class="tk">Bloch sphere &amp; entanglement</td><td class="tv">Entangled states (Bell states) show NO arrow on Bloch sphere — they are mixed states when viewed on individual qubits</td></tr>
+      <tr><td class="tk">Circuit inspection</td><td class="tv"><code>qc.depth()</code>, <code>qc.count_ops()</code>, <code>qc.num_qubits</code> — check before submitting to hardware</td></tr>
+      <tr><td class="tk">Simulator limits</td><td class="tv">Classical statevector simulation becomes impractical at ~30–40 qubits (2ⁿ complex amplitudes)</td></tr>
+      <tr><td class="tk">Qiskit 2.x migration</td><td class="tv">Use <code>SamplerV2</code>, <code>EstimatorV2</code> — old V1 primitives deprecated</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- BONUS 8: qBraid Sessions (Ricky Young + Harshit Gupta) -->
+<section id="bonus8" class="reveal">
+  <div class="sec-tag">Week 3 · Sessions 1–3 · qBraid (Young &amp; Gupta)</div>
+  <h2>qBraid Platform — Simulators, Noise Modelling &amp; Real Hardware Execution</h2>
+  <p style="font-size:.85rem;color:var(--text2);margin-bottom:1.2rem">
+    Speakers: Ricky Young (COO, qBraid) &amp; Harshit Gupta (Quantum Software Engineer, qBraid)
+  </p>
+
+  <h3>1 · What Is qBraid?</h3>
+  <p>qBraid is a framework-agnostic cloud platform for quantum computing. Write in <strong>any</strong> quantum library (Qiskit, Cirq, PyQuil, PyTket) and submit to <strong>any</strong> backend (IBM, IQM, IonQ, Rigetti, Quantinuum, AWS) through a single API. ~27,000 users, 34+ quantum devices.</p>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Write In</th><th>Run On</th><th>qBraid Handles</th></tr></thead>
+    <tbody>
+      <tr><td class="tk">Qiskit</td><td class="tv">Amazon Braket, IQM, IonQ</td><td class="tv" rowspan="4">Transpilation, compilation, backend interfacing, version isolation</td></tr>
+      <tr><td class="tk">Cirq</td><td class="tv">IBM backend</td></tr>
+      <tr><td class="tk">PyTket</td><td class="tv">Quantinuum</td></tr>
+      <tr><td class="tk">PyQuil</td><td class="tv">Rigetti</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3 class="mt2">2 · State Vector vs. Shot-Based Simulation</h3>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Property</th><th>State Vector Simulator</th><th>Shot-Based Simulator</th></tr></thead>
+    <tbody>
+      <tr><td class="tk">Output</td><td class="tv">Exact complex amplitudes aₓ</td><td class="tv">Sampled counts per basis state</td></tr>
+      <tr><td class="tk">Phase access</td><td><span class="badge green">✓ Yes</span></td><td><span class="badge red">✗ No</span></td></tr>
+      <tr><td class="tk">Statistical noise</td><td><span class="badge green">✗ None (exact)</span></td><td><span class="badge gold">✓ Yes — improves with shots</span></td></tr>
+      <tr><td class="tk">Use case</td><td class="tv">Debug, verify algorithm correctness</td><td class="tv">Hardware-like measurement workflows</td></tr>
+      <tr><td class="tk">Convergence</td><td class="tv">Exact always</td><td class="tv">Converges to exact as shots → ∞ (Born Rule)</td></tr>
+      <tr><td class="tk">AWS SV1</td><td class="tv">Up to 24 qubits</td><td class="tv">TN1 (Tensor Network): up to 50+ qubits</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3 class="mt2">3 · Three Noise Types to Know</h3>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Noise Type</th><th>Physical Cause</th><th>Qiskit Aer Model</th><th>Effect on Bell State</th></tr></thead>
+    <tbody>
+      <tr><td class="tk">Depolarizing</td><td class="tv">Gate imperfection — applies wrong operation with prob p</td><td><code>depolarizing_error(p, n)</code></td><td class="tv">Output distribution spreads — skewed from 50/50</td></tr>
+      <tr><td class="tk">Amplitude damping</td><td class="tv">Energy relaxation — |1⟩ decays to |0⟩ (T₁ decay)</td><td><code>amplitude_damping_error(gamma)</code></td><td class="tv">Biases measurements toward |0⟩</td></tr>
+      <tr><td class="tk">Readout error</td><td class="tv">Measurement misassignment — 0↔1 flip</td><td><code>ReadoutError([[1-p, p],[p, 1-p]])</code></td><td class="tv">Counts appear in wrong bitstrings</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3 class="mt2">4 · Quantifying Noise — Fidelity &amp; Leakage</h3>
+  <div class="g2">
+    <div class="panel cyan">
+      <div style="font-family:var(--mono);font-size:.68rem;color:var(--cyan);margin-bottom:.4rem">STATE FIDELITY</div>
+      <p style="font-size:.83rem;margin-bottom:.4rem"><code>F = ⟨Φ+|ρ_noisy|Φ+⟩</code></p>
+      <p style="font-size:.83rem;color:var(--text2);margin:0">F=1 → perfect. F↓ as noise increases. F&gt;0.5 certifies genuine entanglement (cannot be explained classically).</p>
+    </div>
+    <div class="panel violet">
+      <div style="font-family:var(--mono);font-size:.68rem;color:var(--violet2);margin-bottom:.4rem">MEASUREMENT LEAKAGE</div>
+      <p style="font-size:.83rem;margin-bottom:.4rem"><code>L = P(|01⟩) + P(|10⟩)</code></p>
+      <p style="font-size:.83rem;color:var(--text2);margin:0">Probability of undesired outcomes. L=0 → perfect. L↑ as noise increases. Complementary to fidelity: F↓ implies L↑.</p>
+    </div>
+  </div>
+
+  <h3 class="mt2">5 · Simulator vs. Real QPU — When to Use What</h3>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Backend</th><th>Gives</th><th>Cost</th><th>Use When</th></tr></thead>
+    <tbody>
+      <tr><td class="tk" style="color:var(--green)">Ideal simulator (Aer)</td><td class="tv">Exact/theoretical results</td><td class="tv">Free (local compute)</td><td class="tv">Development, debugging, algorithm design</td></tr>
+      <tr><td class="tk" style="color:var(--gold)">Noisy simulator (Aer + model)</td><td class="tv">Hardware-like results without queue</td><td class="tv">Free</td><td class="tv">Validating noise robustness before QPU</td></tr>
+      <tr><td class="tk" style="color:var(--cyan)">Real QPU</td><td class="tv">Real results with true noise</td><td class="tv">Per-task + per-shot fees</td><td class="tv">Final validation, benchmarking, real experiments</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3 class="mt2">6 · qBraid Universal Execution Pattern</h3>
+  <div class="panel" style="border-color:rgba(0,229,255,.28)">
+    <pre style="font-family:var(--mono);font-size:.8rem;color:var(--text2);white-space:pre-wrap;line-height:1.7;margin:0"># 1. SETUP
+from qbraid import QbraidProvider
+provider = QbraidProvider()
+device = provider.get_device("sv1")    # any device ID
+
+# 2. BUILD CIRCUIT (any framework — Qiskit shown)
+from qiskit import QuantumCircuit
+qc = QuantumCircuit(2)
+qc.h(0); qc.cx(0, 1); qc.measure_all()
+
+# 3. SUBMIT (same API regardless of framework or backend)
+job = device.run(qc, shots=1000)      # async — returns Job ID
+
+# 4. RETRIEVE RESULTS (blocking)
+result = job.result()
+counts = result.measurement_counts()
+
+# 5. PRICING CHECK (before submitting to real QPU)
+# Avant QPU example: 30 credits/task + 0.145 credits/shot
+# 100 shots: 30 + (100 × 0.145) = 44.5 credits</pre>
+  </div>
+
+  <h3 class="mt2">7 · QASM 2 vs QASM 3</h3>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Feature</th><th>OpenQASM 2</th><th>OpenQASM 3</th></tr></thead>
+    <tbody>
+      <tr><td class="tk">Syntax</td><td class="tv">Simple, sequential gates only</td><td class="tv">Python-like — functions, loops, branching, subroutines</td></tr>
+      <tr><td class="tk">Classical control</td><td><span class="badge red">✗ Limited</span></td><td><span class="badge green">✓ Mid-circuit measurement + feedforward</span></td></tr>
+      <tr><td class="tk">Recommended for</td><td class="tv">Beginners — sequential circuits</td><td class="tv">Advanced — dynamic/error correction circuits</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="callout green">
+    <div class="ci">🎯</div>
+    <div><h4>Week 3 Action Plan</h4>
+    <p>1. Create account at <code>account.qbraid.com</code> · 2. Launch JupyterLab instance · 3. Install Qiskit 2.x environment · 4. Run Bell state on AWS SV1 simulator · 5. Run same circuit on real IQM Garnet QPU · 6. Compare histograms — observe leakage counts · 7. Measure leakage probability = undesired counts / total shots.</p></div>
+  </div>
+</section>
+
+<!-- QUIZ 2: Week 1 Quiz 2 - Superdense Coding & Teleportation -->
+<section id="quiz2" class="reveal">
+  <div class="sec-tag">Week 1 · Quiz 2 · 4 Questions</div>
+  <h2>Week 1 Quiz 2 — Superdense Coding &amp; Teleportation</h2>
+  <p style="color:var(--text2);font-size:.88rem;margin-bottom:1.4rem">Based on Dr. Mojandar's IBM Quantum lecture on quantum protocols.</p>
+  <div id="quiz2-container"></div>
+  <div id="quiz2-result" style="display:none;margin-top:1.5rem">
+    <div id="quiz2-score-box" style="text-align:center;padding:1.5rem;border-radius:var(--r);border:1px solid var(--border)">
+      <div id="quiz2-score-num" style="font-family:var(--mono);font-size:3rem;font-weight:700"></div>
+      <div style="font-family:var(--mono);font-size:.85rem;color:var(--text2);margin-top:.25rem">questions correct</div>
+      <div id="quiz2-score-msg" style="margin-top:.75rem;font-size:.9rem"></div>
+    </div>
+    <button class="btn ghost" id="quiz2-retry" style="margin-top:1rem;width:100%;justify-content:center">↺ Retry Quiz</button>
+  </div>
+</section>
+
+<!-- QUIZ 3: Week 1 Quiz 3 -->
+<section id="quiz3" class="reveal">
+  <div class="sec-tag">Week 1 · Quiz 3 · 4 Questions</div>
+  <h2>Week 1 Quiz 3 — Quantum Applications &amp; Hardware</h2>
+  <p style="color:var(--text2);font-size:.88rem;margin-bottom:1.4rem">Based on Brian McDermott's Naval Nuclear Lab lecture.</p>
+  <div id="quiz3-container"></div>
+  <div id="quiz3-result" style="display:none;margin-top:1.5rem">
+    <div id="quiz3-score-box" style="text-align:center;padding:1.5rem;border-radius:var(--r);border:1px solid var(--border)">
+      <div id="quiz3-score-num" style="font-family:var(--mono);font-size:3rem;font-weight:700"></div>
+      <div style="font-family:var(--mono);font-size:.85rem;color:var(--text2);margin-top:.25rem">questions correct</div>
+      <div id="quiz3-score-msg" style="margin-top:.75rem;font-size:.9rem"></div>
+    </div>
+    <button class="btn ghost" id="quiz3-retry" style="margin-top:1rem;width:100%;justify-content:center">↺ Retry Quiz</button>
+  </div>
+</section>
+
+<!-- QUIZ 4: Week 2 Quiz -->
+<section id="quiz4" class="reveal">
+  <div class="sec-tag">Week 2 · Quiz · 5 Questions</div>
+  <h2>Week 2 Quiz — Multi-Qubit Systems &amp; Entanglement</h2>
+  <p style="color:var(--text2);font-size:.88rem;margin-bottom:1.4rem">Based on Week 2 sessions covering GHZ states, Qiskit circuits, and entanglement.</p>
+  <div id="quiz4-container"></div>
+  <div id="quiz4-result" style="display:none;margin-top:1.5rem">
+    <div id="quiz4-score-box" style="text-align:center;padding:1.5rem;border-radius:var(--r);border:1px solid var(--border)">
+      <div id="quiz4-score-num" style="font-family:var(--mono);font-size:3rem;font-weight:700"></div>
+      <div style="font-family:var(--mono);font-size:.85rem;color:var(--text2);margin-top:.25rem">questions correct</div>
+      <div id="quiz4-score-msg" style="margin-top:.75rem;font-size:.9rem"></div>
+    </div>
+    <button class="btn ghost" id="quiz4-retry" style="margin-top:1rem;width:100%;justify-content:center">↺ Retry Quiz</button>
+  </div>
+</section>
+
+<!-- QUIZ 5: Week 3 Quiz -->
+<section id="quiz5" class="reveal">
+  <div class="sec-tag">Week 3 · Quiz · 5 Questions</div>
+  <h2>Week 3 Quiz — Simulators, Noise &amp; Real Hardware</h2>
+  <p style="color:var(--text2);font-size:.88rem;margin-bottom:1.4rem">Based on Week 3 qBraid sessions covering noise modelling and hardware execution.</p>
+  <div id="quiz5-container"></div>
+  <div id="quiz5-result" style="display:none;margin-top:1.5rem">
+    <div id="quiz5-score-box" style="text-align:center;padding:1.5rem;border-radius:var(--r);border:1px solid var(--border)">
+      <div id="quiz5-score-num" style="font-family:var(--mono);font-size:3rem;font-weight:700"></div>
+      <div style="font-family:var(--mono);font-size:.85rem;color:var(--text2);margin-top:.25rem">questions correct</div>
+      <div id="quiz5-score-msg" style="margin-top:.75rem;font-size:.9rem"></div>
+    </div>
+    <button class="btn ghost" id="quiz5-retry" style="margin-top:1rem;width:100%;justify-content:center">↺ Retry Quiz</button>
+  </div>
+</section>
+'''
+
+html = html.replace('</main>', new_sections + '\n</main>')
+
+# ── NAV: Desktop sidebar ───────────────────────────────────────
+old_nav_end = '    <a href="#bonus3"><span class="ndot"></span>Week 1 · Teleportation</a>'
+new_nav = '''    <a href="#bonus3"><span class="ndot"></span>Week 1 · Teleportation</a>
+    <a href="#bonus5"><span class="ndot"></span>Week 1 · McDermott (Naval Lab)</a>
+    <a href="#bonus6"><span class="ndot"></span>Week 2 · Seegerer (IQM) GHZ</a>
+    <a href="#bonus7"><span class="ndot"></span>Week 2 · Qiskit Sessions</a>
+    <a href="#bonus8"><span class="ndot"></span>Week 3 · qBraid Sessions</a>
+    <a href="#quiz2"><span class="ndot"></span>Week 1 Quiz 2</a>
+    <a href="#quiz3"><span class="ndot"></span>Week 1 Quiz 3</a>
+    <a href="#quiz4"><span class="ndot"></span>Week 2 Quiz</a>
+    <a href="#quiz5"><span class="ndot"></span>Week 3 Quiz</a>'''
+html = html.replace(old_nav_end, new_nav)
+
+# ── NAV: Mobile ───────────────────────────────────────────────
+html = html.replace(
+    '    <a href="#bonus3">📡 Week 1 · Teleportation</a>',
+    '''    <a href="#bonus3">📡 Week 1 · Teleportation</a>
+    <a href="#bonus5">⚓ Week 1 · McDermott</a>
+    <a href="#bonus6">🔗 Week 2 · GHZ &amp; Seegerer</a>
+    <a href="#bonus7">💻 Week 2 · Qiskit</a>
+    <a href="#bonus8">🔬 Week 3 · qBraid</a>
+    <a href="#quiz2">✅ Week 1 Quiz 2</a>
+    <a href="#quiz3">✅ Week 1 Quiz 3</a>
+    <a href="#quiz4">✅ Week 2 Quiz</a>
+    <a href="#quiz5">✅ Week 3 Quiz</a>'''
+)
+
+with open('/home/claude/quantum_playbook_v2.html', 'w') as f:
+    f.write(html)
+print(f'Done: {len(html)//1024}KB, sections: {html.count("</section>")}')
+PYEOF
